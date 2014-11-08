@@ -38,7 +38,6 @@ if args.cache:
 
 
 
-
 if args.use_proxy:
     from werkzeug.contrib.fixers import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app)
