@@ -48,7 +48,7 @@ classifiers = [
 setup(
     name='ambrydoc',
     version=ambrydoc.__version__,
-    description='Common interface to a variety of object storate systems',
+    description='Documentation server for Ambry',
     long_description=readme,
     packages=packages,
     package_data=package_data,

@@ -2,7 +2,7 @@
 Accessor class to produce dictionary representations of bundles, cached as json.
 """
 
-class BundleJson(object):
+class DocCache(object):
 
     templates = {
         'bundle' : 'bundles/{vid}/bundle.json',
@@ -20,9 +20,7 @@ class BundleJson(object):
 
     def path(self, t, **kwargs):
 
-        import sys
-
-        return  t.format(**kwargs)
+        return  self.cache.path(t.format(**kwargs), missing_ok = True)
 
     def munge(self,n):
         import sys
@@ -45,10 +43,10 @@ class BundleJson(object):
 
         return self.cache.has(rel_path)
 
-    def put(self, rel_path, f):
+    def put(self, rel_path, f, force=False):
         import json
 
-        if self.cache.has(rel_path):
+        if self.cache.has(rel_path) and not force:
             return False
 
         with self.cache.put_stream(rel_path) as s:
@@ -56,10 +54,11 @@ class BundleJson(object):
 
         return True
 
-    def get(self, rel_path, f):
+    def get(self, rel_path):
         import json
 
         if not self.cache.has(rel_path):
+
             return None
 
         with self.cache.get_stream(rel_path) as s:
@@ -68,22 +67,23 @@ class BundleJson(object):
     ##
     ## Library
 
-    def library_path(self, vid):
+    def library_path(self):
         return self.path(self.templates['library'])
 
     def put_library(self, l, force=False):
         return self.put(self.library_path(), lambda:l.dict, force=force)
 
     def get_library(self):
+
         return self.get(self.library_path())
 
     ##
     ## Manifests
 
-    def manifest_path(self, vid):
-        return self.path(self.templates['manifest'], vid=self.resolve_vid(vid))
+    def manifest_path(self, uid):
+        return self.path(self.templates['manifest'], uid=self.resolve_vid(uid))
 
-    def put_manifest(self, f, m, force=False):
+    def put_manifest(self, m,f, force=False):
 
         d = m.dict
         d['file'] = f.dict
@@ -105,7 +105,6 @@ class BundleJson(object):
 
     def get_store(self, vid):
         return self.get(self.store_path(vid))
-
 
     ##
     ## Bundles
@@ -138,55 +137,10 @@ class BundleJson(object):
         return self.path(self.templates['table'], bvid=self.resolve_vid(bvid), tvid=self.resolve_vid(tvid))
 
     def put_table(self, t, force=False):
-        bvid = 'd'+t.d_vid[1:-5]+t.d_vid[-3:]
+        bvid = t.d_vid
+
         return self.put(self.table_path(bvid, t.vid), lambda: t.nonull_col_dict )
 
     def get_table(self, tvid):
         bvid = 'd'+tvid[1:-5]+tvid[-3:]
         return self.get(self.table_path(bvid,tvid))
-
-
-
-class LibraryJson(Json):
-
-    def __init__(self, cache, library=None):
-        self._library = library
-
-        super(LibraryJson, self).__init__(cache)
-
-        self.path = self.path('library.json')
-
-    def put(self):
-        """Always creates anew"""
-
-        self.cache.remove(self.path)
-
-        return self.get()
-
-    def get(self):
-
-        return self._get(self.path, lambda: self._library.dict)
-
-class ManifestJson(Json):
-
-    def __init__(self, cache):
-
-        super(ManifestJson, self).__init__(cache)
-
-    def path(self, uid):
-        return "manifests/{}.json".format(self.munge(uid))
-
-    def put(self, m, f):
-        """Always creates anew"""
-
-        self.cache.remove(self.path(m.uid))
-
-        d = m.dict
-        d['file'] = f.dict
-        d['text'] = str(m)
-
-        return self._get(self.path(m.uid), lambda: d )
-
-    def get(self, uid):
-
-        return self._get(self.path(uid), None )

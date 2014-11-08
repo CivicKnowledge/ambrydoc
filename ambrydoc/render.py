@@ -5,7 +5,6 @@ Support for creating web pages and text representations of schemas.
 import os
 
 
-
 def resolve(t):
 
     from ambry.identity import Identity
@@ -43,9 +42,8 @@ def partition_path(b, p):
 def manifest_path(m):
     return "manifests/{}.html".format(m)
 
-
 def store_path(s):
-    return "{}".format(s),
+    return "{}".format(s)
 
 
 class extract_entry(object):
@@ -65,29 +63,20 @@ class extract_entry(object):
 class Renderer(object):
 
 
-    def __init__(self, cache, library = None, warehouse = None, root_path = None):
+    def __init__(self, cache,):
 
         from jinja2 import Environment, PackageLoader
-
-        self.warehouse = warehouse
-        self.library = library
-
-        if not self.library and self.warehouse:
-            self.library = self.warehouse.library
-            self.logger = self.warehouse.logger
-        else:
-            self.logger = self.library.logger
+        from cache import DocCache
 
         self.cache = cache
 
+        self.doc_cache =  DocCache(self.cache)
+
         self.css_files = ['css/style.css', 'css/pygments.css' ]
 
-        self.env = Environment(loader=PackageLoader('ambry.support', 'templates'))
+        self.env = Environment(loader=PackageLoader('ambrydoc', 'templates'))
 
-        if root_path is not None:
-            self.root_path = root_path
-        else:
-            self.root_path =  cache.path('', missing_ok=True, public_url=True).rstrip("/")
+        self.root_path =  cache.path('', missing_ok=True, public_url=True).rstrip("/")
 
         self.extracts = []
 
@@ -156,20 +145,15 @@ class Renderer(object):
 
         template = self.env.get_template('index.html')
 
-        l = self.library
-
-        return template.render(root_path=self.root_path,
-                               lj = l.cached_dict, l=l, w=self.warehouse,
-                               **self.cc())
+        return template.render( lj = self.doc_cache.get_library(),
+                                **self.cc())
 
 
     def bundles_index(self):
         """Render the bundle Table of Contents for a library"""
         template = self.env.get_template('toc/bundles.html')
 
-
-
-        return template.render(root_path=self.root_path, l=self.library, w=self.warehouse, **self.cc())
+        return template.render(root_path=self.root_path, l=self.library, bw=self.warehouse, **self.cc())
 
 
     def tables_index(self):
@@ -298,13 +282,12 @@ class Renderer(object):
 
     @property
     def css_dir(self):
-        import ambry.support.templates as tdir
+        import ambrydoc.templates as tdir
 
         return os.path.join(os.path.dirname(tdir.__file__),'css')
 
-
     def css_path(self, name):
-        import ambry.support.templates as tdir
+        import ambrydoc.templates as tdir
 
         return os.path.join(os.path.dirname(tdir.__file__), 'css', name)
 
