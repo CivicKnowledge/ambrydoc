@@ -21,47 +21,48 @@ def css_file(name):
 def index():
     return renderer().index()
 
-@app.route('/bundles/<vid>.html')
-def get_bundle(vid):
+@app.route('/index.<ct>')
+def index_ct(ct):
+    return renderer(content_type=ct).index()
 
+@app.route('/bundles/<vid>.<ct>')
+def get_bundle(vid, ct):
+    return renderer(content_type=ct).bundle(vid)
 
-    return renderer()._bundle_main(vid)
+@app.route('/bundles.<ct>')
+def get_bundles(ct):
 
-@app.route('/bundles.html')
-def get_bundles():
+    return renderer(content_type=ct).bundles_index()
 
-    return renderer().bundles_index()
+@app.route('/tables.<ct>')
+def get_tables(ct):
 
-@app.route('/tables.html')
-def get_tables():
+    return renderer(content_type=ct).tables_index()
 
-    return renderer().tables_index()
+@app.route('/bundles/<bvid>/tables/<tvid>.<ct>')
+def get_table(bvid, tvid, ct):
 
-@app.route('/bundles/<bvid>/tables/<tvid>.html')
-def get_table(bvid, tvid):
+    return renderer(content_type=ct).table(bvid, tvid)
 
-    return renderer().table(bvid, tvid)
+@app.route('/bundles/<bvid>/partitions/<pvid>.<ct>')
+def get_partitions(bvid, pvid, ct):
 
-@app.route('/bundles/<bvid>/partitions/<pvid>.html')
-def get_partitions(bvid, pvid):
+    return renderer(content_type=ct).partition(bvid, pvid)
 
-    return renderer().partition(bvid, pvid)
+@app.route('/stores/<sid>.<ct>')
+def get_store(sid, ct):
 
-@app.route('/stores/<sid>.html')
-def get_store(sid):
-    s = library().store(sid)
+    return renderer(content_type=ct).store(sid)
 
-    return renderer().store(s)
+@app.route('/manifests/<mid>.<ct>')
+def get_manifest(mid, ct):
 
-@app.route('/manifests/<mid>.html')
-def get_manifest(mid):
-
-    return renderer().manifest(mid)
+    return renderer(content_type=ct).manifest(mid)
 
 
 @app.route('/test')
 def test():
-    return warehouse().database.dsn
+    pass
 
 @app.route('/info')
 def info():

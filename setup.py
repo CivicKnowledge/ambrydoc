@@ -29,8 +29,8 @@ scripts=[ ]
 package_data = {"": ['*.html', '*.css', '*.rst']}
 
 requires = [
-    "flask"
-
+    "flask",
+    "Whoosh"
 ]
 
 classifiers = [
