@@ -1,16 +1,60 @@
 {% extends "layout.html" %}
-{% block title %}Database: {{s.data.title}}{% endblock %}
+{% block title %}Database: {{s.title}}{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
 
 {% block masthead %}
-    <h1 class="title">Database: {{s.data.title}}</h1>
-    <p>{{s.path}}</p>
-    {% if s.data.summary -%}<p>{{s.data.summary}}</p>{% endif -%}
+    <h1 class="title">Warehouse: {{s.title}}</h1>
+    <p>{{s.dsn}}</p>
+    {% if s.summary -%}<p>{{s.summary}}</p>{% endif -%}
 {% endblock %}
 
 {% block body %}
-{{s.dict}}<br/>
-{{s.data}}
+<div class="col-md-12">
+
+    <h2>Collections</h2>
+    <p>Collections in this warehouse </p>
+    <table  class="table table-hover table-condensed" >
+    {% for uid, m in s.manifests.items() -%}
+        <tr>
+        <td><a href="{{manifest_path(uid)}}">{{uid}}</a></td>
+        <td>{{m.title}}</td>
+        <td>{{m.summary.html}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+
+
+<div class="col-md-12">
+
+    <h2>Tables</h2>
+    <table  class="table table-hover table-condensed" >
+        <tr>
+            <th>id</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Installed Names</th>
+            <th>Source Collection</th>
+
+        </tr>
+    {% for k, t in s.tables.items() -%}
+        <tr>
+        <td><a href="{{table_path(t.d_vid, t.vid)}}">{{t.vid}}</a></td>
+        <td>{{t.name}}</td>
+        <td>{{t.description}}</td>
+        <td><ul>{% for n in t.installed_names -%}
+            <li>{{n}}</li>
+            {% endfor -%}</ul>
+        </td>
+        <td><ul>{% for m in t.from_manifest -%}
+            <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
+            {% endfor -%}</ul>
+        </td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+
 {% endblock %}

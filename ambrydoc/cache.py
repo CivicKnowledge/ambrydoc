@@ -79,9 +79,6 @@ class DocCache(object):
         return self.get(self.library_relpath())
 
 
-
-
-
     ##
     ## Manifests
 

@@ -45,7 +45,7 @@ def manifest_path(m):
     return "/manifests/{}.html".format(m)
 
 def store_path(s):
-    return "/stores/{}".format(s)
+    return "/stores/{}.html".format(s)
 
 
 
@@ -175,7 +175,7 @@ class Renderer(object):
 
         template = self.env.get_template('index.html')
 
-        return self.render(template, lj = self.doc_cache.get_library(), **self.cc())
+        return self.render(template, l = self.doc_cache.get_library(), **self.cc())
 
 
     def bundles_index(self):
@@ -227,11 +227,35 @@ class Renderer(object):
 
         return self.render(template, b=b, p=p, **self.cc())
 
-    def store(self, store):
+    def store(self, uid):
 
         template = self.env.get_template('store/index.html')
 
-        return self.render(template, s=store, **self.cc())
+        l = self.doc_cache.get_library()
+        store = l['stores'][uid]
+
+        store['manifests'] = { uid:self.doc_cache.get_manifest(uid) for uid in store['manifests']}
+
+        # Now collect the partitions and tables from all of the naifests.
+
+        tables = {}
+
+        for uid, m in store['manifests'].items():
+            for t_vid, t in m['tables'].items():
+                t['from_manifest'] = [dict(uid = uid, title = m['title'])]
+                k = t_vid
+
+                if k in tables:
+                    tables[k]['from_manifest'] += t['from_manifest']
+                    tables[k]['installed_names'] = list(set(tables[k]['installed_names'] + t['installed_names']))
+                else:
+                    tables[k] = t
+
+
+        store['tables'] = tables
+
+
+        return self.render(template, l=l, s=store, **self.cc())
 
     def info(self, app_config, run_config):
 
