@@ -6,6 +6,20 @@ import os
 
 from  flask.json import JSONEncoder as FlaskJSONEncoder
 
+import jinja2.tests
+
+if not 'equalto' in jinja2.tests.TESTS:
+    def test_equalto(value, other):
+        return value == other
+
+    jinja2.tests.TESTS['equalto'] = test_equalto
+
+if not 'isin' in jinja2.tests.TESTS:
+    def test_isin(value, other):
+        return value in other
+
+    jinja2.tests.TESTS['isin'] = test_isin
+
 
 def resolve(t):
 
@@ -95,6 +109,10 @@ class Renderer(object):
 
         self.content_type = content_type # Set to true to get Render to return json instead
 
+        # Monkey patch to get the equalto test
+
+
+
     def maybe_render(self, rel_path, render_lambda, metadata={}, force=False):
         """Check if a file exists and maybe render it"""
 
@@ -171,11 +189,12 @@ class Renderer(object):
                 os.remove(e.abs_path)
 
 
-    def index(self):
+    def index(self, term=None):
 
         template = self.env.get_template('index.html')
 
-        return self.render(template, l = self.doc_cache.get_library(), **self.cc())
+
+        return self.render(template, l = self.doc_cache.get_library(), search=self.search(term), **self.cc())
 
 
     def bundles_index(self):
@@ -200,10 +219,6 @@ class Renderer(object):
         b = self.doc_cache.get_bundle(vid)
 
         lj = self.doc_cache.get_library()
-
-        b['in_manifests'] = { muid:lj['manifests'][muid]
-                              for muid in self.doc_cache.get('manifest_map.json').get(vid, [])}
-
 
         return self.render(template, b = b , **self.cc())
 
@@ -231,31 +246,12 @@ class Renderer(object):
 
         template = self.env.get_template('store/index.html')
 
-        l = self.doc_cache.get_library()
-        store = l['stores'][uid]
+        store = self.doc_cache.get_store(uid)
 
+        # Update the manifest to get the whole object
         store['manifests'] = { uid:self.doc_cache.get_manifest(uid) for uid in store['manifests']}
 
-        # Now collect the partitions and tables from all of the naifests.
-
-        tables = {}
-
-        for uid, m in store['manifests'].items():
-            for t_vid, t in m['tables'].items():
-                t['from_manifest'] = [dict(uid = uid, title = m['title'])]
-                k = t_vid
-
-                if k in tables:
-                    tables[k]['from_manifest'] += t['from_manifest']
-                    tables[k]['installed_names'] = list(set(tables[k]['installed_names'] + t['installed_names']))
-                else:
-                    tables[k] = t
-
-
-        store['tables'] = tables
-
-
-        return self.render(template, l=l, s=store, **self.cc())
+        return self.render(template,  s=store, **self.cc())
 
     def info(self, app_config, run_config):
 
@@ -289,3 +285,21 @@ class Renderer(object):
         import ambrydoc.templates as tdir
 
         return os.path.join(os.path.dirname(tdir.__file__), 'css', name)
+
+
+    def search(self, term):
+        from ambrydoc.search import Search
+
+        if term:
+
+            s = Search(self.doc_cache)
+
+            results =  s.search(term)
+
+        else:
+
+            results = []
+
+        template = self.env.get_template('search.html')
+
+        return self.render(template, term = term, results = results, **self.cc())

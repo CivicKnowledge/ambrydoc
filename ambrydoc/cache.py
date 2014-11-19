@@ -95,20 +95,20 @@ class DocCache(object):
         d['file'] = f.dict
         d['text'] = str(m)
 
-        d['files'] = f.dict['data'].get('files')
+        #d['files'] = f.dict['data'].get('files')
 
-        del d['file']['data']
+        #del d['file']['data']
 
         # Update the partitions to include bundle references,
         # then add bundle information.
 
-        partitions = {pvid: str(ObjectNumber.parse(pvid).as_dataset) for pvid in f.dict['data'].get('partitions',[])}
+        partitions = {pvid: str(ObjectNumber.parse(pvid).as_dataset) for pvid in f.dict.get('partitions',[])}
 
         d["partitions"] = partitions
 
         d['tables'] = {tvid:  {
                           k:v for k,v in (self.get_table(tvid).items()+[('installed_names',[])]) if k != 'columns'
-                       } for tvid in f.dict['data'].get('tables',[])
+                       } for tvid in f.dict.get('tables',[])
                       }
 
         d['bundles'] = {vid: self.get_bundle(vid) for vid in partitions.values()}
@@ -177,14 +177,14 @@ class DocCache(object):
     ##
     ## Stores
 
-    def store_relpath(self, vid):
-        return self.path(self.templates['store'], vid=self.resolve_vid(vid))
+    def store_relpath(self, uid):
+        return self.path(self.templates['stores'], uid=self.resolve_vid(uid))
 
-    def put_store(self, b, force=False):
-        return self.put(self.store_relpath(b.identity.vid), lambda: b.dict, force=force)
+    def put_store(self, s, force=False):
+        return self.put(self.store_relpath(s.uid), lambda: s.dict, force=force)
 
-    def get_store(self, vid):
-        return self.get(self.store_relpath(vid))
+    def get_store(self, uid):
+        return self.get(self.store_relpath(uid))
 
     ##
     ## Bundles
@@ -193,7 +193,8 @@ class DocCache(object):
         return self.path(self.templates['bundle'], vid=self.resolve_vid(vid))
 
     def put_bundle(self, b, force=False):
-        return self.put(self.bundle_relpath(b.identity.vid), lambda: b.dict)
+
+        return self.put(self.bundle_relpath(b.identity.vid), lambda: b.dict, force=force)
 
     def get_bundle(self, vid):
         return self.get(self.bundle_relpath(vid))
@@ -205,9 +206,10 @@ class DocCache(object):
         return self.path(self.templates['schema'], vid=self.resolve_vid(vid))
 
     def put_schema(self, b, force=False):
-        return self.put(self.schema_relpath(b.identity.vid), lambda: b.schema.dict)
+        return self.put(self.schema_relpath(b.identity.vid), lambda: b.schema.dict, force=force)
 
     def get_schema(self, vid):
+
         return self.get(self.schema_relpath(vid))
 
     ##
@@ -219,7 +221,7 @@ class DocCache(object):
     def put_table(self, t, force=False):
         bvid = t.d_vid
 
-        return self.put(self.table_relpath(bvid, t.vid), lambda: t.nonull_col_dict )
+        return self.put(self.table_relpath(bvid, t.vid), lambda: t.nonull_col_dict, force=force )
 
     def get_table(self, tvid):
         bvid = 'd'+tvid[1:-5]+tvid[-3:]

@@ -7,7 +7,7 @@
         {% if w %}<th>Installed As</th>{% endif %}
         <th>Partitions</th>
         <th>Description</th>
-        <th>Data</th>
+
     </tr>
     {% for tid, t in b.tables.items() -%}
     <tr>
@@ -22,9 +22,7 @@
             </ul>
         {% endif -%}</td>
         <td>{{t.description}}</td>
-        <td>{{modal_button('sample_data-'+t.vid,'Sample Data ')}}
-            {% call modal(id='sample_data-'+t.vid,title='Sample Data For "'+t.name+'"') %}{{exampledata()}}{% endcall %}
-        </td>
+
     </tr>
     {% endfor %}
 </table>

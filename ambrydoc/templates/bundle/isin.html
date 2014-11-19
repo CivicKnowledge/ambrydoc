@@ -1,9 +1,9 @@
 <!-- Is In: Where to find this manifest installed -->
-{% if b.in_manifests -%}
+{% if b.manifests -%}
     <div class = 'ck-dependencies pull-left col-md-5'>
         <h2>Collections</h2>
         <dl>
-            {% for muid, m in b.in_manifests.items() -%}
+            {% for muid, m in b.manifests.items() -%}
                 <dt><a href="{{manifest_path(muid)}}">{{m.title}}</a></dt><dd>{{m.summary}}</dd>
             {% endfor -%}
         </dl>

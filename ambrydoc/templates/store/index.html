@@ -1,3 +1,4 @@
+{% from 'macros.html' import modal, modal_button, exampledata %}
 {% extends "layout.html" %}
 {% block title %}Database: {{s.title}}{% endblock %}
 {% block head %}
@@ -26,31 +27,72 @@
     </table>
 </div>
 
-
 <div class="col-md-12">
-
     <h2>Tables</h2>
     <table  class="table table-hover table-condensed" >
         <tr>
             <th>id</th>
             <th>Name</th>
+            <th>Type</th>
             <th>Description</th>
             <th>Installed Names</th>
             <th>Source Collection</th>
 
         </tr>
-    {% for k, t in s.tables.items() -%}
+    {% for t in s.tables.values()|selectattr('type','equalto','table') -%}
         <tr>
         <td><a href="{{table_path(t.d_vid, t.vid)}}">{{t.vid}}</a></td>
         <td>{{t.name}}</td>
-        <td>{{t.description}}</td>
+        <td>{{t.type}}</td>
+        <td>{{t.description if t.description  else ''}}</td>
         <td><ul>{% for n in t.installed_names -%}
             <li>{{n}}</li>
             {% endfor -%}</ul>
         </td>
-        <td><ul>{% for m in t.from_manifest -%}
+        <td><ul>{% for uid in t.manifests -%}
+            {% set m = s.manifests.get(uid) -%}
             <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
             {% endfor -%}</ul>
+        </td>
+        </tr>
+    {% endfor %}
+    </table>
+</div>
+
+
+
+
+<div class="col-md-12">
+    <h2>Views and MViews</h2>
+    <table  class="table table-hover table-condensed" >
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Source Collection</th>
+            <th>Sql</th>
+        </tr>
+    {% for t in s.tables.values()|selectattr('type','isin',['view', 'mview']) -%}
+        <tr>
+        <td>{{t.name}}</td>
+        <td>{{t.type}}</td>
+        <td>{{t.description if t.description  else ''}}</td>
+        <td><ul>{% for uid in t.manifests -%}
+            {% set m = s.manifests.get(uid) -%}
+            <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
+            {% endfor -%}</ul>
+        </td>
+        <td>
+            {{modal_button('sql_source-'+t.vid,'SQL')}}
+            {% call modal(id='sql_source-'+t.vid,title='SQL Source for "'+t.name+'"') %}
+                <div class="codehilite " >
+                    {{t.sql_formatted}}
+                </div>
+
+                <div  >
+                    {{t.get('doc',{}).html}}
+                </div>
+            {% endcall %}
         </td>
         </tr>
     {% endfor %}

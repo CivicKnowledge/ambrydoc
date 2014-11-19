@@ -5,7 +5,7 @@
 import argparse
 import sys
 from ambrydoc import app, configure_application, write_config, config_paths
-
+from ambrydoc import fscache
 
 
 parser = argparse.ArgumentParser(prog='python -mambry.server.documentation',
@@ -19,9 +19,39 @@ parser.add_argument('-P', '--use-proxy', action='store_true',
                     help="Setup for using a proxy in front of server, using werkzeug.contrib.fixers.ProxyFix")
 parser.add_argument('-d', '--debug',  action='store_true',  help="Set debugging mode")
 parser.add_argument('-C', '--check-config',  action='store_true',  help="print cache string and configuration file and exit")
+parser.add_argument('-i', '--index',  action='store_true',  help="Update the search index")
+parser.add_argument('-r', '--reindex',  action='store_true',  help="Recreate the search index")
+
+parser.add_argument('-s', '--search',  help="search for a term in the search index")
 
 args = parser.parse_args()
 
+config = configure_application(vars(args))
+
+if args.index or args.reindex:
+    from ambrydoc.search import Search
+    from ambrydoc.cache import DocCache
+
+    print 'Updating the search index'
+
+    s = Search(DocCache(fscache()))
+
+    s.index(reset=args.reindex)
+
+    sys.exit(0)
+
+if args.search:
+    from ambrydoc.search import Search
+    from ambrydoc.cache import DocCache
+
+    print "Search for ", args.search
+
+    s = Search(DocCache(fscache()))
+
+    for r in s.search(args.search):
+        print r
+
+    sys.exit(0)
 
 if args.install:
     import yaml
@@ -40,16 +70,14 @@ if args.use_proxy:
     from werkzeug.contrib.fixers import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
-config = configure_application(vars(args))
+
 
 
 if args.check_config:
-    from ambrydoc import cache
+
     import yaml
 
-    print cache()
-
-
+    print fscache()
 
     sys.exit(0)
 

@@ -5,8 +5,10 @@
 {% endblock %}
 {% block masthead %}
     <h1 class="title">Table: {{t.name}}</h1>
-    <p><a href="{{bundle_path(b)}}">{{b.identity.fqname}}</a></p>
     {% if t.description -%}<p>{{t.description}}</p>{% endif -%}
+    <p>From: <strong>{{b.meta.about.title+',' if b.meta.about.title else '' }}</strong>
+        <a href="{{bundle_path(b)}}">{{b.identity.fqname}}</a>.
+        </p>
 {% endblock %}
 
 {% block body %}
@@ -19,7 +21,7 @@
         <th>Size</th>
         <th>Description</th>
     </tr>
-    {% for cvid, c in t.columns.items() -%}
+    {% for c in t.columns.values()|sort(attribute='sequence_id') -%}
     <tr>
         <td>{{c.sequence_id}}</td>
         <td>{{c.name}}</td>

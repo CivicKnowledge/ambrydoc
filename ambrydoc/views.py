@@ -4,7 +4,7 @@ from . import app, renderer
 
 
 
-from flask import g, current_app, send_from_directory
+from flask import g, current_app, send_from_directory, request
 
 
 @app.teardown_appcontext
@@ -24,6 +24,13 @@ def index():
 @app.route('/index.<ct>')
 def index_ct(ct):
     return renderer(content_type=ct).index()
+
+
+
+@app.route('/search.<ct>')
+def search(ct):
+    return renderer(content_type=ct).search(term=request.args.get('term'))
+
 
 @app.route('/bundles/<vid>.<ct>')
 def get_bundle(vid, ct):
