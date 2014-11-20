@@ -194,7 +194,7 @@ class Renderer(object):
         template = self.env.get_template('index.html')
 
 
-        return self.render(template, l = self.doc_cache.get_library(), search=self.search(term), **self.cc())
+        return self.render(template, l = self.doc_cache.get_library(), **self.cc())
 
 
     def bundles_index(self):

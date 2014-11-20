@@ -25,12 +25,9 @@ def index():
 def index_ct(ct):
     return renderer(content_type=ct).index()
 
-
-
 @app.route('/search.<ct>')
 def search(ct):
     return renderer(content_type=ct).search(term=request.args.get('term'))
-
 
 @app.route('/bundles/<vid>.<ct>')
 def get_bundle(vid, ct):

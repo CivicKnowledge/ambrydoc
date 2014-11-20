@@ -140,8 +140,39 @@ class Search(object):
 
             results = searcher.search(query, limit=100)
 
+            entries = {}
 
-            return [ dict(score = hit.score,**hit.fields()) for hit in results]
+            for hit in results:
+                d_vid = hit['d_vid']
+
+                d = dict(score = hit.score,**hit.fields())
+
+                if d_vid not in entries:
+                    entries[d_vid] = dict(score = 0, bundle = None, tables = [])
+
+                entries[d_vid]['score'] += hit.score
+
+                if hit['type'] == 'bundle':
+                    entries[d_vid]['bundle'] = d
+                elif hit['type'] == 'table':
+
+                    entries[d_vid]['tables'].append(d)
+
+
+                # When there are a bunch of tables returned, but not the bundle, we need to re-create the bundle.
+                for vid, e in entries.items():
+                    if not e['bundle']:
+                        cb = self.doc_cache.get_bundle(vid)
+                        about = cb ['meta']['about']
+                        e['bundle'] = dict(
+                            title = about.get('title'),
+                            summary = about.get('summary'),
+                            fqname = cb['identity']['fqname'],
+                            vid = cb['identity']['vid'])
+
+
+
+            return entries
 
 
     def dump(self):
