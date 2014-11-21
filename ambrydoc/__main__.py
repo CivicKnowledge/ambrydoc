@@ -71,8 +71,6 @@ if args.use_proxy:
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
-
-
 if args.check_config:
 
     import yaml
