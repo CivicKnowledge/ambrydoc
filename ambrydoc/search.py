@@ -10,6 +10,7 @@ class AmbrySchema(SchemaClass):
     d_vid = ID(stored=True, unique=False)
     type = ID(stored=True)
     fqname = ID(stored=True)
+    source = ID(stored=True)
     names = KEYWORD(stored=True, scorable=True, field_boost=2.0)
     title = TEXT(stored=True, field_boost=2.0)
     summary = TEXT(stored=True, field_boost=2.0)
@@ -20,7 +21,7 @@ class AmbrySchema(SchemaClass):
     space = ID
     grain = ID
 
-search_fields = ['fqname','names','title','summary','keywords', 'groups','text','time','space','grain']
+search_fields = ['fqname','source', 'names','title','summary','keywords', 'groups','text','time','space','grain']
 
 class Search(object):
 
@@ -88,6 +89,7 @@ class Search(object):
                 vid=b['identity']['vid'],
                 d_vid=b['identity']['vid'],
                 fqname=b['identity']['vname'],
+                source=b['identity']['source'],
                 names=u'{} {} {}'.format(b['identity']['name'], b['identity']['name'], b['identity']['fqname']),
                 title=a.get('title', u'') or u'',
                 summary=a.get('summary', u'') or u'',
@@ -99,6 +101,7 @@ class Search(object):
             writer.add_document(**d)
 
     def index_tables(self, writer):
+        import json
 
         l = self.doc_cache.get_library()
 
@@ -106,7 +109,7 @@ class Search(object):
             s = self.doc_cache.get_schema(k)
 
             for t_vid, t in s.items():
-                summary = u'{} {}\n'.format(t['name'], t.get('description',''))
+
                 columns = u''
                 columns_names  = []
                 for c_vid, c in t['columns'].items():
@@ -119,7 +122,7 @@ class Search(object):
                     fqname=t['name'],
                     type=u'table',
                     title=b['about'].get('title',u''),
-                    summary=summary,
+                    summary=unicode(t.get('description','')),
                     keywords=columns_names,
                     text=columns
                 )
@@ -138,7 +141,7 @@ class Search(object):
 
             query = qp.parse(term)
 
-            results = searcher.search(query, limit=100)
+            results = searcher.search(query, limit=600)
 
             entries = {}
 
@@ -161,6 +164,7 @@ class Search(object):
 
                 # When there are a bunch of tables returned, but not the bundle, we need to re-create the bundle.
                 for vid, e in entries.items():
+
                     if not e['bundle']:
                         cb = self.doc_cache.get_bundle(vid)
                         about = cb ['meta']['about']
@@ -168,8 +172,9 @@ class Search(object):
                             title = about.get('title'),
                             summary = about.get('summary'),
                             fqname = cb['identity']['fqname'],
+                            vname = cb['identity']['vname'],
+                            source=cb['identity']['source'],
                             vid = cb['identity']['vid'])
-
 
 
             return entries

@@ -72,11 +72,41 @@ body {
     padding:10px;
 }
 
-.bundle_toc .toc_summary {
-
+.result h2 {
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 5px;
 }
-.bundle_toc .toc_title {
 
+.result h3 {
+    font-size: 16px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.result h3.tables {
+    font-size: 16px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: #397ac3;
+}
+
+.result h3.tables:after {
+    font-family: 'Glyphicons Halflings';
+    content:"\e113";
+    font-size: 14px;
+}
+
+.result h3.tables.collapsed:after {
+    font-family: 'Glyphicons Halflings';
+    content:"\e114";
+    font-size: 14px;
+}
+
+
+
+.result span.source {
+    color: #808080;
 }
 
 

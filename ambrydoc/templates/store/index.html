@@ -33,28 +33,28 @@
         <tr>
             <th>id</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Description</th>
             <th>Installed Names</th>
             <th>Source Collection</th>
 
         </tr>
     {% for t in s.tables.values()|selectattr('type','equalto','table') -%}
-        <tr>
-        <td><a href="{{table_path(t.d_vid, t.vid)}}">{{t.vid}}</a></td>
-        <td>{{t.name}}</td>
-        <td>{{t.type}}</td>
-        <td>{{t.description if t.description  else ''}}</td>
-        <td><ul>{% for n in t.installed_names -%}
-            <li>{{n}}</li>
-            {% endfor -%}</ul>
-        </td>
-        <td><ul>{% for uid in t.manifests -%}
-            {% set m = s.manifests.get(uid) -%}
-            <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
-            {% endfor -%}</ul>
-        </td>
-        </tr>
+        {% if t.installed -%}
+            <tr>
+            <td><a href="{{table_path(t.d_vid, t.vid)}}">{{t.vid}}</a></td>
+            <td>{{t.name}}</td>
+            <td>{{t.description if t.description  else ''}}</td>
+            <td><ul>{% for n in t.installed_names -%}
+                <li>{{n}}</li>
+                {% endfor -%}</ul>
+            </td>
+            <td><ul>{% for uid in t.manifests -%}
+                {% set m = s.manifests.get(uid) -%}
+                <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
+                {% endfor -%}</ul>
+            </td>
+            </tr>
+        {% endif -%}
     {% endfor %}
     </table>
 </div>

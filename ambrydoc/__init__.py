@@ -121,12 +121,14 @@ def read_config():
             with open(path, 'rb') as f:
                 return yaml.load(f)
 
-        except OSError:
+        except (OSError, IOError):
             pass
 
     return {}
 
 
-
 with app.app_context():
     current_app.app_config = configure_application() # May get run again in __main__, when running in develop mode.
+
+
+import views

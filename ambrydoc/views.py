@@ -3,7 +3,6 @@ import os
 from . import app, renderer
 
 
-
 from flask import g, current_app, send_from_directory, request
 
 

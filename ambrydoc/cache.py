@@ -139,17 +139,7 @@ class DocCache(object):
 
                     t = b['tables'][tvid]
                     e = inst_table_entry(b, p, t)
-                    # The versioned and unversioned install names, with the partition prefix.
-                    nver_name = p['id'] + '_' + t['name']
-                    ver_name =  p['vid'] + '_' + t['name']
-                    if not nver_name in installed_table_names:
-                        installed_table_names[nver_name] = e
-                        installed_table_names[ver_name] = e
 
-                    # Link the installed names into the tables dict
-                    if tvid in d['tables'] and nver_name not in d['tables'][tvid]['installed_names']:
-                        d['tables'][tvid]['installed_names'].append(nver_name)
-                        d['tables'][tvid]['installed_names'].append(ver_name)
 
         d['installed_table_names'] = installed_table_names
 
