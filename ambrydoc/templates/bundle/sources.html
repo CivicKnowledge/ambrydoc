@@ -1,13 +1,21 @@
 <!-- Sources -->
 {% if b.meta.sources and b.meta.sources.items() -%}
 <div class = 'ck-sources pull-left col-md-5'>
+    {%if b.meta.sources.items()|length > 5 -%}{% set collapse = True%}{%else%}{% set collapse = false%}{%endif%}
+    {%if collapse%}
+    <h2 class = "tables collapsed" data-toggle="collapse" data-target="#sources-table"
+            aria-expanded="false" aria-controls="demo">{{b.meta.sources.items()|length}} Sources</h2>
+    {%else%}
     <h2>Sources</h2>
-    <dl class="">
+    {%endif-%}
+    <table id="sources-table" class="table no_border table_condensed {%if collapse%}collapse{%endif%}">
     {% for k,e in b.meta.sources.items() %}
-        <dt><a href="{{e.url}}" target="{{e.title}}">{{k}}</a></dt>
-        <dd>{{e.description}}</dd>
+        <tr>
+            <td><a href="{{e.url}}" target="{{e.title}}">{{k}}</a></td>
+            <td>{{e.description}}</td>
+        </tr>
     {% endfor -%}
-    </dl>
+    </table>
 </div>
 {% endif -%}
 

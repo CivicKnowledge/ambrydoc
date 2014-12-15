@@ -2,13 +2,17 @@
 Accessor class to produce dictionary representations of bundles, cached as json.
 """
 
+from . import memoize, expiring_memoize
+
 class DocCache(object):
 
     templates = {
         'bundle' : 'bundles/{vid}/bundle.json',
         'schema' : 'bundles/{vid}/schema.json',
+        'schemacsv': 'bundles/{vid}/schema.csv',
         'table' : 'bundles/{bvid}/tables/{tvid}.json',
         'library' : 'library.json',
+        'tables' : 'tables.json',
         'manifest': 'manifests/{uid}.json',
         'stores': 'stores/{uid}.json',
 
@@ -19,6 +23,7 @@ class DocCache(object):
         assert bool(cache)
 
         self.cache = cache
+
 
     def path(self, t, **kwargs):
 
@@ -52,19 +57,27 @@ class DocCache(object):
             return False
 
         with self.cache.put_stream(rel_path) as s:
-            json.dump(f(), s, indent=2)
+            data = f()
+
+            if isinstance(data, basestring):
+                s.write(data)
+            else:
+                json.dump(data, s, indent=2)
 
         return True
+
 
     def get(self, rel_path):
         import json
 
         if not self.cache.has(rel_path):
-
             return None
 
         with self.cache.get_stream(rel_path) as s:
-            return json.load(s)
+            if rel_path.endswith('.json'):
+                return json.load(s)
+            else:
+                return s.read()
 
     ##
     ## Library
@@ -78,6 +91,18 @@ class DocCache(object):
     def get_library(self):
         return self.get(self.library_relpath())
 
+    ##
+    ## Tables
+    ### Collects all of the tables into one set
+
+    def tables_relpath(self):
+        return self.path(self.templates['tables'])
+
+    def put_tables(self, t, force=False):
+        return self.put(self.tables_relpath(), lambda: t, force=force)
+
+    def get_tables(self):
+        return self.get(self.tables_relpath())
 
     ##
     ## Manifests
@@ -195,12 +220,23 @@ class DocCache(object):
     def schema_relpath(self, vid):
         return self.path(self.templates['schema'], vid=self.resolve_vid(vid))
 
+
     def put_schema(self, b, force=False):
         return self.put(self.schema_relpath(b.identity.vid), lambda: b.schema.dict, force=force)
 
     def get_schema(self, vid):
-
         return self.get(self.schema_relpath(vid))
+
+
+    def schemacsv_relpath(self, vid):
+        return self.path(self.templates['schemacsv'], vid=self.resolve_vid(vid))
+
+    def put_schemacsv(self, b, force=False):
+        return self.put(self.schemacsv_relpath(b.identity.vid), lambda: b.schema.as_csv(), force=force)
+
+    def get_schemacsv(self, vid):
+
+        return self.get(self.schemacsv_relpath(vid))
 
     ##
     ## Tables
@@ -216,3 +252,28 @@ class DocCache(object):
     def get_table(self, tvid):
         bvid = 'd'+tvid[1:-5]+tvid[-3:]
         return self.get(self.table_relpath(bvid,tvid))
+
+
+    ##
+    ## Generated maps
+
+    @expiring_memoize
+    def table_version_map(self):
+        """Map unversioned table ids to vids. """
+
+        tables = self.get_tables()
+
+        tm = {}
+
+        for vid, t in tables.items():
+
+            if not t['id_'] in tm:
+                tm[t['id_']] = [t['vid']]
+            else:
+                tm[t['id_']].append(t['vid'])
+
+        return tm
+
+
+
+

@@ -5,7 +5,7 @@
 {% endblock %}
 {% block masthead %}
     <h1 class="title">{{b.identity.name}}</h1>
-    <p>Bundle {{b.identity.fqname}}</p>
+    <p>Bundle {{b.identity.fqname}}. <a href="{{schema_path(b.identity.vid,'html')}}">Schema</a></p>
     {% if b.meta.about.summary -%}<p>{{b.meta.about.summary}}</p>{% endif -%}
 {% endblock %}
 

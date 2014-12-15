@@ -32,6 +32,14 @@ def search(ct):
 def get_bundle(vid, ct):
     return renderer(content_type=ct).bundle(vid)
 
+@app.route('/bundles/<vid>/schema.<ct>')
+def get_schema(vid, ct):
+
+    if ct == 'csv':
+        return renderer().schemacsv(vid)
+    else:
+        return renderer(content_type=ct).schema(vid)
+
 @app.route('/bundles.<ct>')
 def get_bundles(ct):
 

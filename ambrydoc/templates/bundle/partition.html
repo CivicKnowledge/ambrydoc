@@ -4,8 +4,8 @@
     {{ super() }}
 {% endblock %}
 {% block masthead %}
-    <h1 class="title">Partition: {{p.vname}}</h1>
-    <p><a href="index.html">{{p.fqname}}</a></p>
+    <h1 class="title">Partition: {{p.fqname}}</h1>
+    <p>From: <a href="{{bundle_path(b.identity.vid)}}">{{b.identity.fqname}}</a></p>
 {% endblock %}
 
 {% block body %}

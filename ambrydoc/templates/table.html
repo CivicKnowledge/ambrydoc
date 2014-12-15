@@ -20,6 +20,8 @@
         <th>Type</th>
         <th>Size</th>
         <th>Description</th>
+        <th>Vid</th>
+        <th>Proto Id</th>
     </tr>
     {% for c in t.columns.values()|sort(attribute='sequence_id') -%}
     <tr>
@@ -28,6 +30,12 @@
         <td>{{c.datatype}}</td>
         <td>{{c.size}}</td>
         <td>{{c.description}}</td>
+        <td>{{c.vid}}</td>
+        <td>{%if c.proto_vid %}
+            <a href="{{proto_vid_path(c.proto_vid)}}">{{c.proto_vid}} ({{tc_obj(c.proto_vid).name}})</a>
+            {%endif-%}
+        </td>
+
     </tr>
     {% endfor %}
 </table>

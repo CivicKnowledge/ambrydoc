@@ -49,10 +49,80 @@ def resolve(t):
 def bundle_path(b):
     return "/bundles/{}.html".format(resolve(b))
 
+def schema_path(b, format):
+    return "/bundles/{}/schema.{}".format(resolve(b), format)
+
 def table_path(b, t):
     return "/bundles/{}/tables/{}.html".format(resolve(b), resolve(t))
 
-def partition_path(b, p):
+def proto_vid_path(pvid):
+
+    b,t,c  = deref_tc_ref(pvid)
+
+    return table_path(str(b), str(t))
+
+def deref_tc_ref(ref):
+    """Given a column or table, vid or id, return the object"""
+    from ambry.identity import ObjectNumber
+
+    on = ObjectNumber.parse(ref)
+
+    b = str(on.as_dataset)
+
+    try:
+        c = on
+        t = on.as_table
+    except AttributeError:
+        t = on
+        c = None
+
+    if not on.revision:
+        # The table does not have a revision, so we need to get one, just get the
+        # latest one
+        from . import renderer
+
+        r = renderer()
+        dc = r.doc_cache
+
+        tm = dc.table_version_map()
+
+        t_vid = reversed(sorted(tm.get(str(t)))).next()
+
+        t = ObjectNumber.parse(t_vid)
+        b = t.as_dataset
+
+        if c:
+            c = c.rev(t.revision)
+
+    return b,t,c
+
+
+def tc_obj(ref):
+    """Return an object for a table or column"""
+    from . import renderer
+
+    b, t, c = deref_tc_ref(ref)
+
+    dc = renderer().doc_cache
+
+    table = dc.get_table(str(t))
+
+    if c:
+        try:
+            return table['columns'][str(c.rev(0))]
+        except KeyError:
+            return None
+    else:
+        return table
+
+def partition_path(b, p=None):
+
+    if p is None:
+        from ambry.identity import ObjectNumber
+        p  = b
+        on = ObjectNumber.parse(p)
+        b = str(on.as_dataset)
+
     return "/bundles/{}/partitions/{}.html".format(resolve(b), resolve(p))
 
 def manifest_path(m):
@@ -61,7 +131,14 @@ def manifest_path(m):
 def store_path(s):
     return "/stores/{}.html".format(s)
 
+def extract_url(base,t,format):
+    return os.path.join(base,'extracts',t+'.'+format)
 
+def extractor_list(t):
+    from . import renderer
+
+
+    return ['csv','json'] + ( ['kml','geojson'] if t['is_geo'] else [] )
 
 
 class extract_entry(object):
@@ -85,8 +162,6 @@ class JSONEncoder(FlaskJSONEncoder):
         return str(type(o))
 
         return FlaskJSONEncoder.default(self, o)
-
-
 
 
 class Renderer(object):
@@ -146,7 +221,6 @@ class Renderer(object):
         finally:
             self.extracts.append(extract_entry(extracted, completed, rel_path, self.cache.path(rel_path)))
 
-
     def cc(self):
         """return common context values"""
         from functools import wraps
@@ -161,10 +235,15 @@ class Renderer(object):
         return {
             'from_root': lambda x: x,
             'bundle_path': bundle_path,
+            'schema_path': schema_path,
             'table_path' :  table_path,
             'partition_path': partition_path,
             'manifest_path':  manifest_path,
             'store_path':  store_path,
+            'proto_vid_path' : proto_vid_path,
+            'extractors' : extractor_list,
+            'tc_obj' : tc_obj,
+            'extract_url' : extract_url,
             'bundle_sort': lambda l, key: sorted(l,key=lambda x: x['identity'][key])
         }
 
@@ -174,13 +253,10 @@ class Renderer(object):
         from flask import Response
 
         if self.content_type == 'json':
-
             return Response(dumps(dict(**kwargs), cls=JSONEncoder, indent=4), mimetype='application/json')
 
         else:
-
             return template.render(*args, **kwargs)
-
 
     def clean(self):
         '''Clean up the extracts on failures. '''
@@ -207,7 +283,7 @@ class Renderer(object):
 
         template = self.env.get_template('toc/tables.html')
 
-        tables = []
+        tables = self.doc_cache.get_tables()
 
         return self.render(template, tables=tables, **self.cc())
 
@@ -221,6 +297,33 @@ class Renderer(object):
         lj = self.doc_cache.get_library()
 
         return self.render(template, b = b , **self.cc())
+
+    def schemacsv(self, vid):
+        """Render documentation for a single bundle """
+        from flask import make_response
+
+        response = make_response(self.doc_cache.get_schemacsv(vid))
+
+        response.headers["Content-Disposition"] = "attachment; filename={}-schema.csv".format(vid)
+
+        return response
+
+    def schema(self, vid):
+        """Render documentation for a single bundle """
+        from csv import reader
+        from StringIO import StringIO
+        import json
+
+        template = self.env.get_template('bundle/schema.html')
+
+        b = self.doc_cache.get_bundle(vid)
+
+        reader = reader(StringIO(self.doc_cache.get_schemacsv(vid)))
+
+        schema = dict(header=reader.next(),rows= [x for x in reader])
+
+
+        return self.render(template, b=b, schema=schema, **self.cc())
 
     def table(self, bvid, tid):
 

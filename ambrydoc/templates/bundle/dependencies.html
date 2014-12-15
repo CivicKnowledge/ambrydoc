@@ -2,11 +2,23 @@
 {% if b.meta.dependencies and b.meta.dependencies.items() -%}
 <div class = 'ck-dependencies pull-left col-md-5'>
     <h2>Dependencies</h2>
-    <dl class="l">
+    <table id="dependencies-table" class="table table_condensed no_border">
+        <tr>
+            <th>Key</th>
+            <th>As Declared</th>
+            <th>As Resolved</th>
+        </tr>
     {% for k,e in b.meta.dependencies.items() %}
-        <dt>{{k}}</dt>
-        <dd>{{e}}</dd>
+        <tr>
+        <td>{{k}}</td>
+        <td>{{e}}</td>
+        <td>{%if k in b.meta.resolved_dependencies%}
+            <a href="{{partition_path(b.meta.resolved_dependencies[k].vid)}}">
+                {{b.meta.resolved_dependencies[k].vname}}</a>
+            {%endif%}</td>
+        </tr>
     {% endfor -%}
-    </dl>
+    </table>
+
 </div>
 {% endif -%}

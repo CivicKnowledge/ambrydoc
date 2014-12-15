@@ -7,7 +7,7 @@
 
 {% block masthead %}
     <h1 class="title">Warehouse: {{s.title}}</h1>
-    <p>{{s.dsn}}</p>
+    <p>UID: {{s.uid}}<br/>DSN: {{s.dsn}}{% if s.url -%}<br/>URL: {{s.url}} {%endif%}</p>
     {% if s.summary -%}<p>{{s.summary}}</p>{% endif -%}
 {% endblock %}
 
@@ -36,7 +36,7 @@
             <th>Description</th>
             <th>Installed Names</th>
             <th>Source Collection</th>
-
+            {% if s.url -%}<th>Extracts</th>{% endif -%}
         </tr>
     {% for t in s.tables.values()|selectattr('type','equalto','table') -%}
         {% if t.installed -%}
@@ -53,6 +53,13 @@
                 <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
                 {% endfor -%}</ul>
             </td>
+            {% if s.url -%}<td>
+                {% for format in extractors(t) -%}
+                <button type="button">
+                <a href="{{extract_url(s.url, t.vid, format)}}">{{format}}</a>
+                </button>
+                {% endfor -%}
+            </td>{% endif %}
             </tr>
         {% endif -%}
     {% endfor %}
@@ -60,20 +67,21 @@
 </div>
 
 
-
-
 <div class="col-md-12">
     <h2>Views and MViews</h2>
     <table  class="table table-hover table-condensed" >
         <tr>
+            <th>id</th>
             <th>Name</th>
             <th>Type</th>
             <th>Description</th>
             <th>Source Collection</th>
             <th>Sql</th>
+            {% if s.url -%}<th>Extracts</th>{% endif -%}
         </tr>
     {% for t in s.tables.values()|selectattr('type','isin',['view', 'mview']) -%}
         <tr>
+        <td>{{t.vid}}</td>
         <td>{{t.name}}</td>
         <td>{{t.type}}</td>
         <td>{{t.description if t.description  else ''}}</td>
@@ -94,6 +102,13 @@
                 </div>
             {% endcall %}
         </td>
+        {% if s.url -%}<td>
+                {% for format in extractors(t) -%}
+                <button type="button">
+                <a href="{{extract_url(s.url, t.vid, format)}}">{{format}}</a>
+                </button>
+                {% endfor -%}
+        </td>{% endif %}
         </tr>
     {% endfor %}
     </table>

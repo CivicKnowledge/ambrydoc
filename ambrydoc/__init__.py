@@ -70,6 +70,31 @@ def memoize(obj):
     return memoizer
 
 
+def expiring_memoize(obj):
+    """Like memoize, but forgets after 10 seconds. """
+    from collections import defaultdict
+    cache = obj.cache = {}
+    last_access = obj.last_access = defaultdict(int)
+
+    @functools.wraps(obj)
+    def memoizer(*args, **kwargs):
+        import time
+
+        key = str(args) + str(kwargs)
+
+        if last_access[key] and last_access[key] + 10 < time.time():
+            if key in cache:
+                del cache[key]
+
+        last_access[key] = time.time()
+
+        if key not in cache:
+            cache[key] = obj(*args, **kwargs)
+        return cache[key]
+
+    return memoizer
+
+
 @memoize
 def fscache():
     from ckcache import parse_cache_string, new_cache
@@ -126,9 +151,19 @@ def read_config():
 
     return {}
 
+def setup_logging():
+    import logging
+
+    path = fscache().path('ambrydoc.log', missing_ok=True)
+
+    print "Logging to: ", path
+
+    logging.basicConfig(filename=path, level=logging.DEBUG)
+
 
 with app.app_context():
     current_app.app_config = configure_application() # May get run again in __main__, when running in develop mode.
+
 
 
 import views

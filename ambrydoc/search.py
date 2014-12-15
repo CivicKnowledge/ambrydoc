@@ -10,8 +10,7 @@ class AmbrySchema(SchemaClass):
     d_vid = ID(stored=True, unique=False)
     type = ID(stored=True)
     fqname = ID(stored=True)
-    source = ID(stored=True)
-    names = KEYWORD(stored=True, scorable=True, field_boost=2.0)
+    identity = KEYWORD(stored=True, scorable=True, field_boost=2.0)
     title = TEXT(stored=True, field_boost=2.0)
     summary = TEXT(stored=True, field_boost=2.0)
     keywords = KEYWORD(field_boost=2.0)
@@ -21,7 +20,7 @@ class AmbrySchema(SchemaClass):
     space = ID
     grain = ID
 
-search_fields = ['fqname','source', 'names','title','summary','keywords', 'groups','text','time','space','grain']
+search_fields = ['identity','title','summary','keywords', 'groups','text','time','space','grain']
 
 class Search(object):
 
@@ -80,17 +79,40 @@ class Search(object):
         for k, v in l['bundles'].items():
 
             b = self.doc_cache.get_bundle(k)
-            a = b['meta'].get('about', {})
 
-            keywords = a.get('keywords', []) + [b['identity']['source']]
+            if not b:
+                print 'No bundle!', k
+                continue
+
+            try:
+                a = b['meta'].get('about', {})
+            except:
+                continue
+
+            keywords = a.get('keywords', []) + [ str(x) for x in b['identity'].values() if x ]
+
+            def identity_parts(ident):
+                parts = [ str(v) for v in ident.values() if v]
+
+                # Add variations of the source, so that 'sandag' will match 'sandag.org'
+                source_parts = ident['source'].split('.')
+                prefixes = []
+                while len(source_parts) >= 1:
+                    prefixes.append(source_parts.pop(0))
+
+                    parts.append('.'.join(source_parts))
+                    parts.append('.'.join(prefixes))
+
+
+
+                return u' '.join(parts)
 
             d = dict(
                 type=u'bundle',
                 vid=b['identity']['vid'],
                 d_vid=b['identity']['vid'],
-                fqname=b['identity']['vname'],
-                source=b['identity']['source'],
-                names=u'{} {} {}'.format(b['identity']['name'], b['identity']['name'], b['identity']['fqname']),
+                fqname = b['identity']['fqname'],
+                identity=identity_parts(b['identity']),
                 title=a.get('title', u'') or u'',
                 summary=a.get('summary', u'') or u'',
                 keywords=u' '.join(keywords),
@@ -132,7 +154,6 @@ class Search(object):
 
     def search(self, term):
 
-
         from whoosh.qparser import QueryParser, MultifieldParser
 
         with self.ix.searcher() as searcher:
@@ -141,7 +162,7 @@ class Search(object):
 
             query = qp.parse(term)
 
-            results = searcher.search(query, limit=600)
+            results = searcher.search(query, limit=None)
 
             entries = {}
 

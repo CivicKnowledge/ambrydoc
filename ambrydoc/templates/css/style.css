@@ -103,10 +103,32 @@ body {
     font-size: 14px;
 }
 
+.ck-sources h2.tables:after {
+    font-family: 'Glyphicons Halflings';
+    content:"\e113";
+    font-size: 14px;
+}
 
+.ck-sources h2.tables.collapsed:after {
+    font-family: 'Glyphicons Halflings';
+    content:"\e114";
+    font-size: 14px;
+}
 
 .result span.source {
     color: #808080;
 }
+
+.no_border>thead>tr>th,
+.no_border>tbody>tr>th,
+.no_border>tfoot>tr>th,
+.no_border>thead>tr>td,
+.no_border>tbody>tr>td,
+.no_border>tfoot>tr>td {
+    border-top: none;
+    padding: 4px;
+}
+
+
 
 
