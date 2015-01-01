@@ -33,6 +33,28 @@ requires = [
     "Whoosh"
 ]
 
+def find_package_data():
+    """Return package_data, because setuptools is too stupid to handle nested directories """
+    #
+    #return {"ambry": ["support/*"]}
+
+    l = list()
+
+    import os
+    for start in ("ambrydoc/static", "ambrydoc/templates"):
+        for root, dirs, files in os.walk(start):
+
+            for f in files:
+
+                if f.endswith('.pyc'):
+                    continue
+
+                path = os.path.join(root,f).replace("ambrydoc/",'')
+
+                l.append(path)
+
+    return {"ambrydoc": l }
+
 classifiers = [
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
@@ -51,7 +73,8 @@ setup(
     description='Documentation server for Ambry',
     long_description=readme,
     packages=packages,
-    package_data=package_data,
+    package_data=find_package_data(),
+    include_package_data=True,
     scripts=scripts,
     install_requires=requires,
     author=ambrydoc.__author__,
