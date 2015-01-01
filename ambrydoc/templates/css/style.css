@@ -129,6 +129,5 @@ body {
     padding: 4px;
 }
 
-
-
+.modal .modal-dialog { width: 800px; }
 

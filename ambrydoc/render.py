@@ -3,8 +3,8 @@ Support for creating web pages and text representations of schemas.
 """
 
 import os
-
 from  flask.json import JSONEncoder as FlaskJSONEncoder
+from . import memoize
 
 import jinja2.tests
 
@@ -121,8 +121,11 @@ def partition_path(b, p=None):
         from ambry.identity import ObjectNumber
         p  = b
         on = ObjectNumber.parse(p)
-        b = str(on.as_dataset)
-
+        try:
+            b = str(on.as_dataset)
+        except AttributeError:
+            b = str(on)
+            raise
     return "/bundles/{}/partitions/{}.html".format(resolve(b), resolve(p))
 
 def manifest_path(m):
@@ -131,14 +134,16 @@ def manifest_path(m):
 def store_path(s):
     return "/stores/{}.html".format(s)
 
-def extract_url(base,t,format):
-    return os.path.join(base,'extracts',t+'.'+format)
+def store_table_path(s,t):
+    return "/stores/{}/tables/{}.html".format(s,t)
+
+def extract_url(base,s,t,format):
+    return os.path.join(base,'warehouses',s,'extracts',t+'.'+format)
 
 def extractor_list(t):
     from . import renderer
 
-
-    return ['csv','json'] + ( ['kml','geojson'] if t['is_geo'] else [] )
+    return ['csv','json'] + ( ['kml','geojson'] if t.get('is_geo',False) else [] )
 
 
 class extract_entry(object):
@@ -161,7 +166,7 @@ class JSONEncoder(FlaskJSONEncoder):
 
         return str(type(o))
 
-        return FlaskJSONEncoder.default(self, o)
+        #return FlaskJSONEncoder.default(self, o)
 
 
 class Renderer(object):
@@ -240,6 +245,7 @@ class Renderer(object):
             'partition_path': partition_path,
             'manifest_path':  manifest_path,
             'store_path':  store_path,
+            'store_table_path': store_table_path,
             'proto_vid_path' : proto_vid_path,
             'extractors' : extractor_list,
             'tc_obj' : tc_obj,
@@ -294,7 +300,7 @@ class Renderer(object):
 
         b = self.doc_cache.get_bundle(vid)
 
-        lj = self.doc_cache.get_library()
+
 
         return self.render(template, b = b , **self.cc())
 
@@ -356,6 +362,16 @@ class Renderer(object):
 
         return self.render(template,  s=store, **self.cc())
 
+    def store_table(self, uid, tid):
+
+        template = self.env.get_template('store/table.html')
+
+        store = self.doc_cache.get_store(uid)
+
+        t = store['tables'][tid]
+
+        return self.render(template, s=store, t=t, **self.cc())
+
     def info(self, app_config, run_config):
 
         template = self.env.get_template('info.html')
@@ -397,12 +413,40 @@ class Renderer(object):
 
             s = Search(self.doc_cache)
 
-            results =  s.search(term)
+            bundles, stores =  s.search(term)
 
         else:
 
-            results = []
+            bundles = []
 
         template = self.env.get_template('search.html')
 
-        return self.render(template, term = term, results = results, **self.cc())
+        return self.render(template, term = term, bundles = bundles, stores = stores, **self.cc())
+
+
+    def generate_sources(self):
+
+        lj = self.doc_cache.get_library()
+
+        sources = {}
+        for vid, b in lj['bundles'].items():
+
+            source = b['identity']['source']
+
+            if not source in sources:
+                sources[source] = {
+                    'bundles': {}
+                }
+
+            sources[source]['bundles'][vid] = b
+
+        return sources
+
+
+    def sources(self):
+
+        template = self.env.get_template('sources/index.html')
+
+        sources = self.generate_sources()
+
+        return self.render(template, sources=sources, **self.cc())

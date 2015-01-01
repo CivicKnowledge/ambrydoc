@@ -70,6 +70,8 @@ class Search(object):
 
         self.index_tables(writer)
 
+        self.index_databases(writer)
+
         writer.commit()
 
     def index_library(self, writer):
@@ -103,8 +105,6 @@ class Search(object):
                     parts.append('.'.join(source_parts))
                     parts.append('.'.join(prefixes))
 
-
-
                 return u' '.join(parts)
 
             d = dict(
@@ -133,23 +133,69 @@ class Search(object):
             for t_vid, t in s.items():
 
                 columns = u''
-                columns_names  = []
+                keywords  = [t['vid'], t['id_']]
                 for c_vid, c in t['columns'].items():
+
                     columns += u'{} {}\n'.format(c['name'], c.get('description',''))
-                    columns_names.append(c['name'])
+
+                    keywords.append(c.get('altname',u''))
+                    keywords.append(c['id_'])
+                    keywords.append(c['vid'])
+                    if c['name'].startswith(c['id_']):
+                        vid, bare_name = c['name'].split('_',1)
+                        keywords.append(bare_name)
+                    else:
+                        keywords.append(c['name'])
 
                 d = dict(
                     vid=t_vid,
                     d_vid=b['identity']['vid'],
                     fqname=t['name'],
                     type=u'table',
-                    title=b['about'].get('title',u''),
+                    title=t['name'],
                     summary=unicode(t.get('description','')),
-                    keywords=columns_names,
+                    keywords=keywords,
                     text=columns
                 )
 
                 writer.add_document(**d)
+
+    def index_databases(self, writer):
+
+        l = self.doc_cache.get_library()
+
+
+        for i, (k, b) in enumerate(l['stores'].items()):
+            names = set()
+
+            s = self.doc_cache.get_store(k)
+
+            for tvid, table in s['tables'].items():
+
+                names.add(table['id_'])
+                names.add(table['vid'])
+                names.add(table['name'])
+                names.add(table.get('altname',u''))
+
+                if 'installed_names' in table:
+                    names.update(set(table['installed_names']))
+
+
+            d = dict(
+                vid=s['uid'],
+                d_vid=None,
+                fqname=s['dsn'],
+                type=u'store',
+                title=s['title'],
+                summary=s['summary'] if s['summary'] else u'',
+                keywords=u' '.join(name for name in names if name)
+            )
+
+            try:
+                writer.add_document(**d)
+            except:
+                print d
+                raise
 
 
     def search(self, term):
@@ -164,41 +210,45 @@ class Search(object):
 
             results = searcher.search(query, limit=None)
 
-            entries = {}
+            bundles = {}
+            stores = {}
 
             for hit in results:
-                d_vid = hit['d_vid']
+                if hit.get('d_vid', False):
+                    d_vid = hit['d_vid']
 
-                d = dict(score = hit.score,**hit.fields())
+                    d = dict(score = hit.score,**hit.fields())
 
-                if d_vid not in entries:
-                    entries[d_vid] = dict(score = 0, bundle = None, tables = [])
+                    if d_vid not in bundles:
+                        bundles[d_vid] = dict(score = 0, bundle = None, tables = [])
 
-                entries[d_vid]['score'] += hit.score
+                    bundles[d_vid]['score'] += hit.score
 
-                if hit['type'] == 'bundle':
-                    entries[d_vid]['bundle'] = d
-                elif hit['type'] == 'table':
+                    if hit['type'] == 'bundle':
+                        bundles[d_vid]['bundle'] = d
+                    elif hit['type'] == 'table':
+                        bundles[d_vid]['tables'].append(d)
 
-                    entries[d_vid]['tables'].append(d)
-
-
-                # When there are a bunch of tables returned, but not the bundle, we need to re-create the bundle.
-                for vid, e in entries.items():
-
-                    if not e['bundle']:
-                        cb = self.doc_cache.get_bundle(vid)
-                        about = cb ['meta']['about']
-                        e['bundle'] = dict(
-                            title = about.get('title'),
-                            summary = about.get('summary'),
-                            fqname = cb['identity']['fqname'],
-                            vname = cb['identity']['vname'],
-                            source=cb['identity']['source'],
-                            vid = cb['identity']['vid'])
+                elif hit['type'] == 'store':
+                    stores[hit['vid']] = dict(**hit.fields())
 
 
-            return entries
+            # When there are a bunch of tables returned, but not the bundle, we need to re-create the bundle.
+            for vid, e in bundles.items():
+
+                if not e['bundle']:
+                    cb = self.doc_cache.get_bundle(vid)
+                    about = cb ['meta']['about']
+                    e['bundle'] = dict(
+                        title = about.get('title'),
+                        summary = about.get('summary'),
+                        fqname = cb['identity']['fqname'],
+                        vname = cb['identity']['vname'],
+                        source=cb['identity']['source'],
+                        vid = cb['identity']['vid'])
+
+
+            return bundles, stores
 
 
     def dump(self):

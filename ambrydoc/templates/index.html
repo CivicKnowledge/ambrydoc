@@ -22,16 +22,17 @@
             <div>
                 <h2>Collections</h2>
                 <p>Collections of data bundles around a specific topic.</p>
-                <table  class="table table-hover table-condensed" >
+                <div>
                 {% for uid, m in l.manifests.items() -%}
                     {% if m.partitions|length > 0 -%}
-                    <tr>
-                    <td><a href="{{manifest_path(uid)}}">{{m.title}}</a></td>
-                    <td>{{m.summary}}</td>
-                    </tr>
+                    <div>
+                        <h3><a href="{{manifest_path(uid)}}">{{m.title}}</a></h3>
+                        <p>{{m.summary}}</p>
+                    </div>
+
                     {% endif %}
                 {% endfor %}
-                </table>
+                </div>
             </div>
             {% endif -%}
 
@@ -41,14 +42,14 @@
             <div>
                 <h2>Databases</h2>
                 <p>Databases that use data from this library. </p>
-                <table  class="table table-hover table-condensed" >
+                <div>
                 {% for ref,s in l.stores.items() -%}
-                    <tr>
-                    <td><a href="{{store_path(ref)}}">{{s.title}}</a></td>
-                    <td>{{s.summary}}</td>
-                    </tr>
+                    <div>
+                        <h4><a href="{{store_path(ref)}}">{{s.title}}</a><br/><small>{{s.dsn}}</small></h4>
+                        <p>{{s.summary}}</p>
+                    </div>
                 {% endfor %}
-                </table>
+                </div>
             </div>
         {% endif %}
         </div>

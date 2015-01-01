@@ -14,7 +14,7 @@ class DocCache(object):
         'library' : 'library.json',
         'tables' : 'tables.json',
         'manifest': 'manifests/{uid}.json',
-        'stores': 'stores/{uid}.json',
+        'stores': 'stores/{uid}/{uid}.json',
 
     }
 
@@ -43,6 +43,8 @@ class DocCache(object):
             return n
 
     def resolve_vid(self, vid):
+
+        assert vid
 
         return self.munge(vid)
 
@@ -194,6 +196,9 @@ class DocCache(object):
 
     def store_relpath(self, uid):
         return self.path(self.templates['stores'], uid=self.resolve_vid(uid))
+
+    def has_store(self, s):
+        return self.has(self.store_relpath(s.uid))
 
     def put_store(self, s, force=False):
         return self.put(self.store_relpath(s.uid), lambda: s.dict, force=force)

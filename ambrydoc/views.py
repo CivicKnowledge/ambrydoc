@@ -65,11 +65,21 @@ def get_store(sid, ct):
 
     return renderer(content_type=ct).store(sid)
 
+@app.route('/stores/<sid>/tables/<tvid>.<ct>')
+def get_store_table(sid, tvid, ct):
+
+    return renderer(content_type=ct).store_table(sid, tvid)
+
+
 @app.route('/manifests/<mid>.<ct>')
 def get_manifest(mid, ct):
 
     return renderer(content_type=ct).manifest(mid)
 
+@app.route('/sources.<ct>')
+def get_sources(ct):
+
+    return renderer(content_type=ct).sources()
 
 @app.route('/test')
 def test():

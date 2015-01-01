@@ -13,9 +13,10 @@
         <td>{{k}}</td>
         <td>{{e}}</td>
         <td>{%if k in b.meta.resolved_dependencies%}
+            {% if not b.meta.resolved_dependencies[k].vid.startswith('d') %}
             <a href="{{partition_path(b.meta.resolved_dependencies[k].vid)}}">
                 {{b.meta.resolved_dependencies[k].vname}}</a>
-            {%endif%}</td>
+            {%endif%}{% endif%}</td>
         </tr>
     {% endfor -%}
     </table>
