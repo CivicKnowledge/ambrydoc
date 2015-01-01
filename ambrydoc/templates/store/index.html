@@ -41,7 +41,7 @@
     {% for t in s.tables.values()|selectattr('type','equalto','table') -%}
         {% if t.installed -%}
             <tr>
-            <td><a href="{{table_path(t.d_vid, t.vid)}}">{{t.vid}}</a></td>
+            <td><a href="{{store_table_path(s.uid, t.vid)}}">{{t.vid}}</a></td>
             <td>{{t.name}}</td>
             <td>{{t.description if t.description  else ''}}</td>
             <td><ul>{% for n in t.installed_names -%}

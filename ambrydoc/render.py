@@ -370,6 +370,11 @@ class Renderer(object):
 
         t = store['tables'][tid]
 
+        del store['partitions']
+        del store['manifests']
+        del store['tables']
+
+
         return self.render(template, s=store, t=t, **self.cc())
 
     def info(self, app_config, run_config):

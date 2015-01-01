@@ -6,10 +6,13 @@
 {% block masthead %}
     <h1 class="title">Table: {{t.name}}</h1>
     {% if t.doc -%}<p>{{t.get('doc',{}).summary_html}}</p>{% endif -%}
-    <p>From: <strong>{{s.title+', '}}</strong><a href="{{store_path(b)}}">{{s.uid}}</a>.</p>
+    <p>In warehouse: <strong>{{s.title+', '}}</strong><a href="{{store_path(s.uid)}}">{{s.uid}}</a>.</p>
+    <p>From partition: <a href="{{partition_path(t.source_partition.vid)}}">{{t.source_partition.vname}}</a></p>
 {% endblock %}
 
 {% block body %}
+
+
 
 <div >
     {{t.get('doc',{}).html}}
