@@ -10,6 +10,10 @@ from flask import g, current_app, send_from_directory, request
 def close_connection(exception):
     pass
 
+@app.errorhandler(500)
+def page_not_found(e):
+    return renderer().error500(e)
+
 @app.route('/css/<name>')
 def css_file(name):
 

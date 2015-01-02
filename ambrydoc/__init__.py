@@ -30,8 +30,6 @@ def memoize(obj):
     return memoizer
 
 
-
-
 from flask import Flask, current_app
 
 app = Flask(__name__)
@@ -39,7 +37,7 @@ app = Flask(__name__)
 # Default configuration
 app_config = {'host': os.getenv('AMBRYDOC_HOST', 'localhost'),
               'port': os.getenv('AMBRYDOC_PORT', 8081),
-              'cache': os.getenv('AMBRYDOC_CACHE', '/data/cache/documentation/'),
+              'cache': os.getenv('AMBRYDOC_CACHE', '/data/cache/jdoc'),
               'use_proxy': bool(os.getenv('AMBRYDOC_USE_PROXY', False)),
               'debug': bool(os.getenv('AMBRYDOC_HOST', False))
 }

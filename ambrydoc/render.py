@@ -270,6 +270,12 @@ class Renderer(object):
                 os.remove(e.abs_path)
 
 
+    def error500(self,e):
+        template = self.env.get_template('500.html')
+
+        return self.render(template, e=e, **self.cc())
+
+
     def index(self, term=None):
 
         template = self.env.get_template('index.html')

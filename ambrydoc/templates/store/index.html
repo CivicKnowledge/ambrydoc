@@ -18,11 +18,13 @@
     <p>Collections in this warehouse </p>
     <table  class="table table-hover table-condensed" >
     {% for uid, m in s.manifests.items() -%}
+        {%if m -%}
         <tr>
         <td><a href="{{manifest_path(uid)}}">{{uid}}</a></td>
         <td>{{m.title}}</td>
         <td>{{m.summary.html}}</td>
         </tr>
+        {%endif%}
     {% endfor %}
     </table>
 </div>
