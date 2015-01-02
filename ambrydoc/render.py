@@ -138,13 +138,12 @@ def store_table_path(s,t):
     return "/stores/{}/tables/{}.html".format(s,t)
 
 def extract_url(base,s,t,format):
-    return os.path.join(base,'warehouses',s,'extracts',t+'.'+format)
+    return os.path.join(base,s,'extracts',t+'.'+format)
 
 def extractor_list(t):
     from . import renderer
 
     return ['csv','json'] + ( ['kml','geojson'] if t.get('is_geo',False) else [] )
-
 
 class extract_entry(object):
     def __init__(self, extracted, completed, rel_path, abs_path, data=None):
@@ -351,14 +350,20 @@ class Renderer(object):
 
         return self.render(template, b=b, p=p, **self.cc())
 
-    def store(self, uid):
+    def store(self, uid, local_extract_url):
 
         template = self.env.get_template('store/index.html')
 
         store = self.doc_cache.get_store(uid)
 
+        assert store
+
+        if local_extract_url:
+            store['url'] = local_extract_url
+
         # Update the manifest to get the whole object
         store['manifests'] = { uid:self.doc_cache.get_manifest(uid) for uid in store['manifests']}
+
 
         return self.render(template,  s=store, **self.cc())
 

@@ -6,10 +6,7 @@ Copyright 2014, Civic Knowledge. All Rights Reserved
 """
 
 import os
-import logging
-import sys
-
-
+import functools
 __version__ = 0.1
 __author__ = "Eric Busboom <eric@civicknowledge.com>"
 
@@ -32,8 +29,8 @@ def memoize(obj):
 
     return memoizer
 
-import os
-import functools
+
+
 
 from flask import Flask, current_app
 
@@ -166,4 +163,4 @@ with app.app_context():
 
 
 
-import views
+import ambrydoc.views

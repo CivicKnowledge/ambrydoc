@@ -7,12 +7,12 @@
     <h1 class="title">Table: {{t.name}}</h1>
     {% if t.doc -%}<p>{{t.get('doc',{}).summary_html}}</p>{% endif -%}
     <p>In warehouse: <strong>{{s.title+', '}}</strong><a href="{{store_path(s.uid)}}">{{s.uid}}</a>.</p>
+    {%if t.source_partition -%}
     <p>From partition: <a href="{{partition_path(t.source_partition.vid)}}">{{t.source_partition.vname}}</a></p>
+    {% endif -%}
 {% endblock %}
 
 {% block body %}
-
-
 
 <div >
     {{t.get('doc',{}).html}}
