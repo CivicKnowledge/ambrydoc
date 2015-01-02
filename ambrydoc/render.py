@@ -159,6 +159,16 @@ class extract_entry(object):
                                                                         self.rel_path, self.abs_path,
                                                                         self.data)
 
+def  local_extract_url():
+    from flask import url_for, current_app
+
+    app = current_app._get_current_object()
+
+    if 'extract_tables' in app.blueprints:
+        return url_for('extract_tables.get_root')
+    else:
+        return None
+
 class JSONEncoder(FlaskJSONEncoder):
 
     def default(self, o):
@@ -167,11 +177,11 @@ class JSONEncoder(FlaskJSONEncoder):
 
         #return FlaskJSONEncoder.default(self, o)
 
-
 class Renderer(object):
 
 
-    def __init__(self, cache,content_type='html'):
+
+    def __init__(self, cache,content_type='html', blueprints = None):
 
         from jinja2 import Environment, PackageLoader
         from cache import DocCache
@@ -188,8 +198,9 @@ class Renderer(object):
 
         self.content_type = content_type # Set to true to get Render to return json instead
 
-        # Monkey patch to get the equalto test
+        self.blueprints = blueprints
 
+        # Monkey patch to get the equalto test
 
 
     def maybe_render(self, rel_path, render_lambda, metadata={}, force=False):
@@ -280,7 +291,6 @@ class Renderer(object):
 
         template = self.env.get_template('index.html')
 
-
         return self.render(template, l = self.doc_cache.get_library(), **self.cc())
 
 
@@ -356,7 +366,7 @@ class Renderer(object):
 
         return self.render(template, b=b, p=p, **self.cc())
 
-    def store(self, uid, local_extract_url):
+    def store(self, uid):
 
         template = self.env.get_template('store/index.html')
 
@@ -364,8 +374,8 @@ class Renderer(object):
 
         assert store
 
-        if local_extract_url:
-            store['url'] = local_extract_url
+        if local_extract_url() and not store['url']:
+            store['url'] = local_extract_url()
 
         # Update the manifest to get the whole object
         store['manifests'] = { uid:self.doc_cache.get_manifest(uid) for uid in store['manifests']}
@@ -384,6 +394,9 @@ class Renderer(object):
         del store['partitions']
         del store['manifests']
         del store['tables']
+
+        if local_extract_url() and not store['url'] :
+            store['url'] = local_extract_url()
 
 
         return self.render(template, s=store, t=t, **self.cc())

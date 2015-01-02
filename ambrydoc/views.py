@@ -68,12 +68,7 @@ def get_partitions(bvid, pvid, ct):
 def get_store(sid, ct):
     from flask import url_for
 
-    if 'extract_tables' in app.blueprints:
-        local_extract_url = url_for('extract_tables.get_root')
-    else:
-        local_extract_url = None
-
-    return renderer(content_type=ct).store(sid, local_extract_url = local_extract_url)
+    return renderer(content_type=ct).store(sid)
 
 @app.route('/stores/<sid>/tables/<tvid>.<ct>')
 def get_store_table(sid, tvid, ct):
