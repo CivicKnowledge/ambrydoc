@@ -94,7 +94,7 @@
         {% if s.url -%}<td>
                 {% for format in extractors(t) -%}
                 <button type="button">
-                <a href="{{extract_url(s.url, s.uid, t.vid, format)}}">{{format}}</a>
+                <a href="{{extract_url(s.url, s.uid, t.name, format)}}">{{format}}</a>
                 </button>
                 {% endfor -%}
         </td>{% endif %}
