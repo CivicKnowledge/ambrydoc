@@ -140,6 +140,9 @@ def store_table_path(s,t):
 def extract_url(base,s,t,format):
     return os.path.join(base,s,'extracts',t+'.'+format)
 
+def db_download_url(base,s):
+    return os.path.join(base,'download',s+'.db')
+
 def extractor_list(t):
     from . import renderer
 
@@ -260,6 +263,7 @@ class Renderer(object):
             'extractors' : extractor_list,
             'tc_obj' : tc_obj,
             'extract_url' : extract_url,
+            'db_download_url': db_download_url,
             'bundle_sort': lambda l, key: sorted(l,key=lambda x: x['identity'][key])
         }
 
