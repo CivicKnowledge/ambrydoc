@@ -49,7 +49,9 @@
             <tr>
             <td><a href="{{store_table_path(s.uid, t.vid)}}">{{t.vid}}</a></td>
             <td>{{t.name}}</td>
-            <td>{{t.description if t.description  else ''}}</td>
+            <td><strong>{%if t.source_partition -%}
+            <a href="{{partition_path(t.source_partition.vid)}}">{{t.source_partition.vname}}</a></p>
+            {% endif -%}</strong>{{t.description if t.description  else ''}}</td>
             <td><ul>{% for n in t.installed_names -%}
                 <li>{{n}}</li>
                 {% endfor -%}</ul>
