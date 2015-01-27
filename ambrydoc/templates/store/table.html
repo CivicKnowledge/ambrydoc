@@ -66,7 +66,7 @@
 {% endif -%}
 
 {% if t.sample -%}
-<h2> Sample Data <small>{{t.count}} records</small></h2>
+<h2> Sample Data <small>{{t.sample|length}} of {{t.count}} records</small></h2>
 <table  class="table">
     <tr>
         {% for c in t.sample[0] %}

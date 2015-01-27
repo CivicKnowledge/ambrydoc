@@ -21,6 +21,36 @@ if not 'isin' in jinja2.tests.TESTS:
     jinja2.tests.TESTS['isin'] = test_isin
 
 
+def pretty_time(s):
+    """Pretty print time in seconds. From:
+    http://stackoverflow.com/a/24542445/1144479"""
+
+    intervals = (
+        ('weeks', 604800),  # 60 * 60 * 24 * 7
+        ('days', 86400),  # 60 * 60 * 24
+        ('hours', 3600),  # 60 * 60
+        ('minutes', 60),
+        ('seconds', 1),
+    )
+
+    def display_time(seconds, granularity=2):
+        result = []
+
+        for name, count in intervals:
+            value = seconds // count
+            if value:
+                seconds -= value * count
+                if value == 1:
+                    name = name.rstrip('s')
+                result.append("{} {}".format(value, name))
+
+        return ', '.join(result[:granularity])
+
+    for i, (name, limit) in enumerate(intervals):
+
+        if s > limit:
+            return display_time(int(s),4-i)
+
 def resolve(t):
 
     from ambry.identity import Identity
@@ -251,6 +281,7 @@ class Renderer(object):
             return wrapper
 
         return {
+            'pretty_time': pretty_time,
             'from_root': lambda x: x,
             'bundle_path': bundle_path,
             'schema_path': schema_path,
@@ -265,6 +296,7 @@ class Renderer(object):
             'extract_url' : extract_url,
             'db_download_url': db_download_url,
             'bundle_sort': lambda l, key: sorted(l,key=lambda x: x['identity'][key])
+
         }
 
     def render(self, template, *args, **kwargs):
@@ -345,6 +377,9 @@ class Renderer(object):
 
         reader = reader(StringIO(self.doc_cache.get_schemacsv(vid)))
 
+        del b['partitions']
+        del b['tables']
+
         schema = dict(header=reader.next(),rows= [x for x in reader])
 
 
@@ -355,6 +390,9 @@ class Renderer(object):
         template = self.env.get_template('table.html')
 
         b = self.doc_cache.get_bundle(bvid)
+
+        del b['partitions']
+        del b['tables']
 
         t = self.doc_cache.get_table(tid)
 

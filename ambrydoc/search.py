@@ -20,6 +20,18 @@ class AmbrySchema(SchemaClass):
     space = ID
     grain = ID
 
+class DatasetSchema(SchemaClass):
+    vid = ID(stored=True, unique=True)
+    id = ID(stored=True, unique=False)
+    doc = TEXT
+    space = ID(stored=True)
+    grain = ID # vid of table or column for geo area or entity
+    years = KEYWORD # Each year the dataset covers as a seperate entry
+    detail = KEYWORD
+
+    title = TEXT(stored=True, field_boost=2.0)
+    summary = TEXT(stored=True, field_boost=2.0)
+
 search_fields = ['identity','title','summary','keywords', 'groups','text','time','space','grain']
 
 class Search(object):

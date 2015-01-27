@@ -24,7 +24,14 @@ parser.add_argument('-r', '--reindex',  action='store_true',  help="Recreate the
 
 parser.add_argument('-s', '--search',  help="search for a term in the search index")
 
+parser.add_argument('-t', '--test', action='store_true',  help="Run a test function in development")
+
 args = parser.parse_args()
+
+if args.test:
+    from ambrydoc.test import test
+    test()
+    sys.exit(0)
 
 config = configure_application(vars(args))
 

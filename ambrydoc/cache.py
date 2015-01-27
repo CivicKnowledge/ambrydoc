@@ -13,6 +13,7 @@ class DocCache(object):
         'table' : 'bundles/{bvid}/tables/{tvid}.json',
         'library' : 'library.json',
         'tables' : 'tables.json',
+        'protos': 'protos.json',
         'manifest': 'manifests/{uid}.json',
         'stores': 'stores/{uid}/{uid}.json',
 
@@ -93,6 +94,20 @@ class DocCache(object):
     def get_library(self):
         return self.get(self.library_relpath())
 
+    def update_library_bundle(self, b, l = None):
+        """Update the library data with a single object"""
+
+        ld = self.get_library()
+
+        if not ld:
+            assert l is not None
+            return self.put_library(l)
+
+        ld['bundles'][b.identity.vid] = b.summary_dict
+
+
+        return self.put(self.library_relpath(), lambda: ld, force = True)
+
     ##
     ## Tables
     ### Collects all of the tables into one set
@@ -105,6 +120,43 @@ class DocCache(object):
 
     def get_tables(self):
         return self.get(self.tables_relpath())
+
+    def update_tables(self, tables):
+
+        td = self.get_tables()
+
+        if not td:
+            td = {}
+
+        td.update(tables)
+
+        self.put_tables(td, force = True)
+
+
+    ##
+    ## Tables
+    ### Collects all of the tables into one set
+
+    def protos_relpath(self):
+        return self.path(self.templates['protos'])
+
+    def put_protos(self, p, force=False):
+        return self.put(self.protos_relpath(), lambda: p, force=force)
+
+    def get_protos(self):
+        return self.get(self.protos_relpath())
+
+    def update_protos(self, protos):
+
+        pd = self.get_protos()
+
+        if not pd:
+            pd = {}
+
+        pd.update(protos)
+
+        self.put_protos(pd, force=True)
+
 
     ##
     ## Manifests
