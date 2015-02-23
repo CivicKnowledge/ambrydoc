@@ -138,9 +138,16 @@ def tc_obj(ref):
     table = dc.get_table(str(t))
 
     if c:
+
+        if not table:
+            print '!!! in tc_obj, No table for ', str(t)
+
         try:
             return table['columns'][str(c.rev(0))]
         except KeyError:
+            return None
+        except TypeError:
+
             return None
     else:
         return table

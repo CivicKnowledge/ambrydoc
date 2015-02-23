@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
-{% block title %}{{b.identity.name}}{% endblock %}
+{% block title %}{{b.meta.about.title}}{% endblock %}
 {% block head %}
     {{ super() }}
 {% endblock %}
 {% block masthead %}
-    <h1 class="title">{{b.identity.name}}</h1>
+    <h1 class="title">{{b.meta.about.title}}</h1>
     <p>Bundle {{b.identity.fqname}}. <a href="{{schema_path(b.identity.vid,'html')}}">Schema</a></p>
     {% if b.meta.about.summary -%}<p>{{b.meta.about.summary}}</p>{% endif -%}
 {% endblock %}

@@ -21,18 +21,53 @@ class AmbrySchema(SchemaClass):
     grain = ID
 
 class DatasetSchema(SchemaClass):
-    vid = ID(stored=True, unique=True)
-    id = ID(stored=True, unique=False)
-    doc = TEXT
-    space = ID(stored=True)
-    grain = ID # vid of table or column for geo area or entity
-    years = KEYWORD # Each year the dataset covers as a seperate entry
-    detail = KEYWORD
+    vid = ID(stored=True, unique=True) # Bundle versioned id
+    id = ID(stored=True, unique=False) # Unversioned id
 
     title = TEXT(stored=True, field_boost=2.0)
     summary = TEXT(stored=True, field_boost=2.0)
+    source = KEYWORD(field_boost=2.0) # Source ( domain ) of the
+
+    doc = TEXT # Generated document for the core of the topic search
+
+
+    @classmethod
+    def make_doc(cls, d):
+        """Create a Dict for loading into the DataSet schema.
+        """
+        doc = """
+        Title
+        Summary
+        Internal Documentation
+        Source agency
+
+        Full Data dictionary, including table and column ids
+
+        """
+
+
+class PartitionSchema(SchemaClass):
+    vid = ID(stored=True, unique=True) # Partition versioned id
+    id = ID(stored=True, unique=False) # Unversioned id
+
+    bvid = ID(stored=True, unique=True)  # Bundle versioned id
+
+    title = TEXT(stored=True, field_boost=2.0) # Title of the table
+
+    doc = TEXT # Generated document for the core of the topic search
+
+    geo_coverage = ID(stored=True)
+    grain = ID # vid of table or column for geo area or entity
+    years = KEYWORD # Each year the dataset covers as a seperate entry
+    detail = KEYWORD # age, rage, income and other common variable
+
+    @classmethod
+    def make_doc(cls, d):
+        doc = ""
 
 search_fields = ['identity','title','summary','keywords', 'groups','text','time','space','grain']
+
+
 
 class Search(object):
 
@@ -54,6 +89,8 @@ class Search(object):
             rmtree(self.index_dir)
 
         self._ix = None
+
+
 
     @property
     def ix(self):
@@ -175,7 +212,6 @@ class Search(object):
     def index_databases(self, writer):
 
         l = self.doc_cache.get_library()
-
 
         for i, (k, b) in enumerate(l['stores'].items()):
             names = set()
