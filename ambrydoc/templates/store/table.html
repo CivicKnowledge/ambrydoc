@@ -8,7 +8,7 @@
     {% if t.doc -%}<p>{{t.get('doc',{}).summary_html}}</p>{% endif -%}
     <p>In warehouse: <strong>{{s.title+', '}}</strong><a href="{{store_path(s.uid)}}">{{s.uid}}</a>.</p>
     {%if t.source_partition -%}
-    <p>From partition: <a href="{{partition_path(t.source_partition.vid)}}">{{t.source_partition.vname}}</a></p>
+    <p>From partition: <a href="{{bundle_path(t.d_vid)}}">{{t.source_partition.vname}}</a></p>
     <p>Installed as: {{ t.installed_names|join(', ') }}</p>
     {% endif -%}
 {% endblock %}
