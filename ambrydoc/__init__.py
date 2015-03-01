@@ -7,8 +7,7 @@ Copyright 2014, Civic Knowledge. All Rights Reserved
 
 import os
 import functools
-__version__ = 0.1
-__author__ = "Eric Busboom <eric@civicknowledge.com>"
+import __meta__
 
 root_config = '/etc/ambrydoc/config.yaml'
 user_config = '~/.ambrydoc/config.yaml'

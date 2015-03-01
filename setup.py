@@ -9,7 +9,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import ambrydoc
+from  ambrydoc.__meta__ import  __version__, __author__
 
 
 if sys.argv[-1] == 'publish':
@@ -69,7 +69,7 @@ classifiers = [
 
 setup(
     name='ambrydoc',
-    version=ambrydoc.__version__,
+    version=__version__,
     description='Documentation server for Ambry',
     long_description=readme,
     packages=packages,
@@ -77,7 +77,7 @@ setup(
     include_package_data=True,
     scripts=scripts,
     install_requires=requires,
-    author=ambrydoc.__author__,
+    author=__author__,
     author_email='eric@sandiegodata.org',
     url='',
     license='LICENSE',
