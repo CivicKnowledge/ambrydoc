@@ -82,6 +82,14 @@ class DocCache(object):
             else:
                 return s.read()
 
+    def remove(self, rel_path):
+        import json
+
+        if not self.cache.has(rel_path):
+            return None
+
+        self.cache.remove(rel_path)
+
     ##
     ## Library
 
@@ -253,10 +261,41 @@ class DocCache(object):
         return self.has(self.store_relpath(s.uid))
 
     def put_store(self, s, force=False):
+
+        ld = self.get_library()
+
+        if ld:
+
+            ld['stores'][s.uid] = s.dict
+
+            return self.put(self.library_relpath(), lambda: ld, force=True)
+
+        else:
+            return None
+
         return self.put(self.store_relpath(s.uid), lambda: s.dict, force=force)
+
+    def remove_store(self, s, force=False):
+        return self.remove(self.store_relpath(s.uid), lambda: s.dict, force=force)
 
     def get_store(self, uid):
         return self.get(self.store_relpath(uid))
+
+
+    def remove_store(self, uid):
+
+        # Non cohesive. The store gets added in Library.dict
+
+        ld = self.get_library()
+
+        if ld and uid in ld['stores']:
+            del ld['stores'][uid]
+
+            return self.put(self.library_relpath(), lambda: ld, force=True)
+
+        else:
+            return None
+
 
     ##
     ## Bundles
