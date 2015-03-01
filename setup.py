@@ -9,7 +9,12 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from  ambrydoc.__meta__ import  __version__, __author__
+__version__ = None # "Declare", actually set in the execfile
+__author__ = None
+__email__ = None
+
+# Load in the metadata.
+execfile(os.path.join(os.path.dirname(__file__),'ambrydoc/_meta.py'))
 
 
 if sys.argv[-1] == 'publish':
@@ -77,7 +82,7 @@ setup(
     include_package_data=True,
     scripts=scripts,
     install_requires=requires,
-    author=__author__,
+    author='Eric Busboom',
     author_email='eric@sandiegodata.org',
     url='',
     license='LICENSE',
