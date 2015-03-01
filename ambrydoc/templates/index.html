@@ -14,9 +14,26 @@
 {% block body %}
 
 <div >
-
     <div class = "row">
-        <div class="col-md-6">
+        <div class="col-md-12">
+            {% if l.stores -%}
+            <div>
+                <h2>Databases</h2>
+                <p>Databases that use data from this library. </p>
+                <div>
+                {% for ref,s in l.stores.items() -%}
+                    <div>
+                        <h4><a href="{{store_path(ref)}}">{{s.title}}</a><small> {{s.summary}}</small></h4>
+                        <p>{{s.dsn}}</p>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        </div>
+    </div>
+    <div class = "row">
+        <div class="col-md-12">
 
             {% if l.manifests-%}
             <div>
@@ -36,22 +53,6 @@
             </div>
             {% endif -%}
 
-        </div>
-        <div class="col-md-6">
-            {% if l.stores -%}
-            <div>
-                <h2>Databases</h2>
-                <p>Databases that use data from this library. </p>
-                <div>
-                {% for ref,s in l.stores.items() -%}
-                    <div>
-                        <h4><a href="{{store_path(ref)}}">{{s.title}}</a><br/><small>{{s.dsn}}</small></h4>
-                        <p>{{s.summary}}</p>
-                    </div>
-                {% endfor %}
-                </div>
-            </div>
-        {% endif %}
         </div>
     </div>
     <div class="clearfix">
