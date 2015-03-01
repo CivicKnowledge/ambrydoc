@@ -9,7 +9,7 @@
 {% block masthead %}
     <h1 class="title">{{m.title}}</h1>
     {% if m.uid -%}<p class="uid">Collection <a href="{{manifest_path(m.uid)}}">{{m.uid}}</a></p>{% endif %}
-    <p>{{m.summary.html}}</p>
+    <p>{{m.summary.html if m.summary and m.summary.html  else ''}}</p>
 {% endblock %}
 
 {% block body %}

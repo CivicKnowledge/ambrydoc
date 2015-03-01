@@ -268,10 +268,8 @@ class DocCache(object):
 
             ld['stores'][s.uid] = s.dict
 
-            return self.put(self.library_relpath(), lambda: ld, force=True)
+            self.put(self.library_relpath(), lambda: ld, force=True)
 
-        else:
-            return None
 
         return self.put(self.store_relpath(s.uid), lambda: s.dict, force=force)
 
