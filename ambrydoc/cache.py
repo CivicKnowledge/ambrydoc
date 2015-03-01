@@ -19,12 +19,11 @@ class DocCache(object):
 
     }
 
-    def __init__(self, cache):
+    def __init__(self, cache = None):
 
         assert bool(cache)
 
         self.cache = cache
-
 
     def path(self, t, **kwargs):
 
@@ -96,10 +95,17 @@ class DocCache(object):
     def library_relpath(self):
         return self.path(self.templates['library'])
 
-    def put_library(self, l, force=False):
+    def put_library(self, l=None, force=False):
+
+        assert bool(l) or bool(self.library)
+
+        if not l:
+            l = self.libary
+
         return self.put(self.library_relpath(), lambda:l.dict, force=force)
 
     def get_library(self):
+
         return self.get(self.library_relpath())
 
     def update_library_bundle(self, b, l = None):
@@ -112,7 +118,6 @@ class DocCache(object):
             return self.put_library(l)
 
         ld['bundles'][b.identity.vid] = b.summary_dict
-
 
         return self.put(self.library_relpath(), lambda: ld, force = True)
 
@@ -130,7 +135,7 @@ class DocCache(object):
         return self.get(self.tables_relpath())
 
     def update_tables(self, tables):
-
+        """Incrementally update the tables list"""
         td = self.get_tables()
 
         if not td:
@@ -140,9 +145,25 @@ class DocCache(object):
 
         self.put_tables(td, force = True)
 
-
     ##
     ## Tables
+
+    def table_relpath(self, bvid, tvid):
+        return self.path(self.templates['table'], bvid=self.resolve_vid(bvid), tvid=self.resolve_vid(tvid))
+
+
+    def put_table(self, t, force=False):
+        bvid = t.d_vid
+
+        return self.put(self.table_relpath(bvid, t.vid), lambda: t.nonull_col_dict, force=force)
+
+
+    def get_table(self, tvid):
+        bvid = 'd' + tvid[1:-5] + tvid[-3:]
+        return self.get(self.table_relpath(bvid, tvid))
+
+    ##
+    ## Protos
     ### Collects all of the tables into one set
 
     def protos_relpath(self):
@@ -332,20 +353,7 @@ class DocCache(object):
 
         return self.get(self.schemacsv_relpath(vid))
 
-    ##
-    ## Tables
 
-    def table_relpath(self, bvid, tvid):
-        return self.path(self.templates['table'], bvid=self.resolve_vid(bvid), tvid=self.resolve_vid(tvid))
-
-    def put_table(self, t, force=False):
-        bvid = t.d_vid
-
-        return self.put(self.table_relpath(bvid, t.vid), lambda: t.nonull_col_dict, force=force )
-
-    def get_table(self, tvid):
-        bvid = 'd'+tvid[1:-5]+tvid[-3:]
-        return self.get(self.table_relpath(bvid,tvid))
 
 
     ##
