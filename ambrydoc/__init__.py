@@ -7,7 +7,7 @@ Copyright 2014, Civic Knowledge. All Rights Reserved
 
 import os
 import functools
-import __meta__
+
 
 root_config = '/etc/ambrydoc/config.yaml'
 user_config = '~/.ambrydoc/config.yaml'
