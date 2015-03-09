@@ -354,8 +354,6 @@ class DocCache(object):
         return self.get(self.schemacsv_relpath(vid))
 
 
-
-
     ##
     ## Generated maps
 
