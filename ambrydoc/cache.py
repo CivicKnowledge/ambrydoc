@@ -4,7 +4,7 @@ Accessor class to produce dictionary representations of bundles, cached as json.
 
 from . import memoize, expiring_memoize
 
-class DocCache(object):
+class XDocCache(object):
 
     templates = {
         'bundle' : 'bundles/{vid}/bundle.json',

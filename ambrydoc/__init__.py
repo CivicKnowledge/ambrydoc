@@ -99,7 +99,7 @@ def fscache():
 @memoize
 def renderer(content_type='html'):
     from render import Renderer
-    return Renderer(fscache(), content_type=content_type)
+    return Renderer(content_type=content_type)
 
 def write_config(config):
     import yaml

@@ -57,7 +57,6 @@ def resolve(t):
     from ambry.orm import Table
     from ambry.warehouse.manifest import Manifest
 
-
     if isinstance(t, basestring):
         return t
     elif isinstance(t, (Identity, Table)):
@@ -126,7 +125,6 @@ def deref_tc_ref(ref):
 
     return b,t,c
 
-
 def tc_obj(ref):
     """Return an object for a table or column"""
     from . import renderer
@@ -135,7 +133,7 @@ def tc_obj(ref):
 
     dc = renderer().doc_cache
 
-    table = dc.get_table(str(t))
+    table = dc.table(str(t))
 
     if c:
 
@@ -217,18 +215,21 @@ class JSONEncoder(FlaskJSONEncoder):
 
         #return FlaskJSONEncoder.default(self, o)
 
+
+
 class Renderer(object):
 
-
-
-    def __init__(self, cache,content_type='html', blueprints = None):
+    def __init__(self, content_type='html', blueprints = None):
 
         from jinja2 import Environment, PackageLoader
-        from cache import DocCache
 
-        self.cache = cache
+        try:
+            from ambry.library import new_library
 
-        self.doc_cache =  DocCache(self.cache)
+            self.library = new_library()
+            self.doc_cache =  self.library.doc_cache
+        except:
+            raise
 
         self.css_files = ['css/style.css', 'css/pygments.css' ]
 
@@ -317,31 +318,34 @@ class Renderer(object):
         else:
             return template.render(*args, **kwargs)
 
+    def compiled_times(self):
+        """Compile all of the time entried from cache calls to one per key"""
+        return self.doc_cache.compiled_times()
+
     def clean(self):
         '''Clean up the extracts on failures. '''
         for e in self.extracts:
             if e.completed == False and os.path.exists(e.abs_path):
                 os.remove(e.abs_path)
 
-
     def error500(self,e):
         template = self.env.get_template('500.html')
 
         return self.render(template, e=e, **self.cc())
 
-
     def index(self, term=None):
 
         template = self.env.get_template('index.html')
 
-        return self.render(template, l = self.doc_cache.get_library(), **self.cc())
-
+        return self.render(template, l = self.doc_cache.library_info(),
+                           warehouses = self.doc_cache.warehouse_index(),
+                           **self.cc())
 
     def bundles_index(self):
         """Render the bundle Table of Contents for a library"""
         template = self.env.get_template('toc/bundles.html')
 
-        return self.render(template, **self.cc())
+        return self.render(template, bundles = self.doc_cache.bundle_index(), **self.cc())
 
     def tables_index(self):
 
@@ -356,9 +360,7 @@ class Renderer(object):
 
         template = self.env.get_template('bundle/index.html')
 
-        b = self.doc_cache.get_bundle(vid)
-
-
+        b = self.doc_cache.bundle(vid)
 
         return self.render(template, b = b , **self.cc())
 
@@ -396,30 +398,30 @@ class Renderer(object):
 
         template = self.env.get_template('table.html')
 
-        b = self.doc_cache.get_bundle(bvid)
+        b = self.doc_cache.bundle(bvid)
 
         del b['partitions']
         del b['tables']
 
-        t = self.doc_cache.get_table(tid)
+        t = self.doc_cache.table(tid)
 
         return self.render(template, b=b, t=t, **self.cc())
 
-    def partition(self, bvid, pvid):
+    def partition(self, pvid):
 
         template = self.env.get_template('bundle/partition.html')
 
-        b = self.doc_cache.get_bundle(bvid)
+        p = self.doc_cache.partition(pvid)
 
-        p = b['partitions'][pvid]
+        p['table'] = self.doc_cache.table(p['table_vid'])
 
-        return self.render(template, b=b, p=p, **self.cc())
+        return self.render(template,  p=p, **self.cc())
 
     def store(self, uid):
 
         template = self.env.get_template('store/index.html')
 
-        store = self.doc_cache.get_store(uid)
+        store = self.doc_cache.warehouse(uid)
 
         assert store
 
@@ -427,7 +429,7 @@ class Renderer(object):
             store['url'] = local_extract_url()
 
         # Update the manifest to get the whole object
-        store['manifests'] = { uid:self.doc_cache.get_manifest(uid) for uid in store['manifests']}
+        store['manifests'] = { uid:self.doc_cache.manifest(uid) for uid in store['manifests']}
 
 
         return self.render(template,  s=store, **self.cc())
@@ -436,7 +438,8 @@ class Renderer(object):
 
         template = self.env.get_template('store/table.html')
 
-        store = self.doc_cache.get_store(uid)
+        # Copy so we don't modify the cached version
+        store = dict(self.doc_cache.warehouse(uid).items())
 
         t = store['tables'][tid]
 
@@ -444,9 +447,9 @@ class Renderer(object):
         del store['manifests']
         del store['tables']
 
+
         if local_extract_url() and not store['url'] :
             store['url'] = local_extract_url()
-
 
         return self.render(template, s=store, t=t, **self.cc())
 

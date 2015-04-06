@@ -30,7 +30,6 @@ class DatasetSchema(SchemaClass):
 
     doc = TEXT # Generated document for the core of the topic search
 
-
     @classmethod
     def make_doc(cls, d):
         """Create a Dict for loading into the DataSet schema.

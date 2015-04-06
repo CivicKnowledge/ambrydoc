@@ -14,6 +14,7 @@ def close_connection(exception):
 def page_not_found(e):
     return renderer().error500(e)
 
+
 @app.route('/css/<name>')
 def css_file(name):
 
@@ -27,6 +28,10 @@ def index():
 @app.route('/index.<ct>')
 def index_ct(ct):
     return renderer(content_type=ct).index()
+
+@app.route('/databases.<ct>')
+def databases_ct(ct):
+    return renderer(content_type=ct).databases()
 
 @app.route('/search.<ct>')
 def search(ct):
@@ -60,9 +65,9 @@ def get_table(bvid, tvid, ct):
     return renderer(content_type=ct).table(bvid, tvid)
 
 @app.route('/bundles/<bvid>/partitions/<pvid>.<ct>')
-def get_partitions(bvid, pvid, ct):
+def get_bundle_partitions(bvid, pvid, ct):
 
-    return renderer(content_type=ct).partition(bvid, pvid)
+    return renderer(content_type=ct).partition(pvid)
 
 @app.route('/stores/<sid>.<ct>')
 def get_store(sid, ct):
@@ -88,6 +93,14 @@ def get_sources(ct):
 @app.route('/test')
 def test():
     pass
+
+@app.route('/test/times')
+def test_times():
+    from flask import Response
+    from flask.json import dumps
+    from render import JSONEncoder
+
+    return Response(dumps([x.__dict__ for x in renderer().compiled_times()], cls=JSONEncoder, indent=4), mimetype='application/json')
 
 @app.route('/info')
 def info():
