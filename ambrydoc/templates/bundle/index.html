@@ -5,7 +5,7 @@
 {% endblock %}
 {% block masthead %}
     <h1 class="title">{{b.meta.about.title}}</h1>
-    <p>Bundle {{b.identity.fqname}}. <a href="{{schema_path(b.identity.vid,'html')}}">Schema</a></p>
+    <p>Dataset {{b.identity.fqname}}. <a href="{{schema_path(b.identity.vid,'html')}}">Schema</a></p>
     {% if b.meta.about.summary -%}<p>{{b.meta.about.summary}}</p>{% endif -%}
 {% endblock %}
 
@@ -18,7 +18,7 @@
     <li role="presentation" class="active">
         <a href="#about-tab" aria-controls="home" role="tab" data-toggle="tab">About</a></li>
     <li role="presentation">
-        <a href="#partitions-tab" aria-controls="profile" role="tab" data-toggle="tab">Partitions</a></li>
+        <a href="#partitions-tab" aria-controls="profile" role="tab" data-toggle="tab">Data Files</a></li>
     <li role="presentation">
         <a href="#build-tab" aria-controls="settings" role="tab" data-toggle="tab">Build</a></li>
   </ul>

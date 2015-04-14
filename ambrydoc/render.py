@@ -218,7 +218,6 @@ class JSONEncoder(FlaskJSONEncoder):
         #return FlaskJSONEncoder.default(self, o)
 
 
-
 class Renderer(object):
 
     def __init__(self, content_type='html', blueprints = None):
@@ -310,8 +309,6 @@ class Renderer(object):
         }
 
     def render(self, template, *args, **kwargs):
-
-
 
         if self.content_type == 'json':
             return Response(dumps(dict(**kwargs), cls=JSONEncoder, indent=4), mimetype='application/json')
