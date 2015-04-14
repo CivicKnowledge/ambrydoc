@@ -5,6 +5,8 @@ Support for creating web pages and text representations of schemas.
 import os
 from  flask.json import JSONEncoder as FlaskJSONEncoder
 from . import memoize
+from flask.json import dumps
+from flask import Response
 
 import jinja2.tests
 
@@ -309,8 +311,7 @@ class Renderer(object):
 
     def render(self, template, *args, **kwargs):
 
-        from flask.json import dumps
-        from flask import Response
+
 
         if self.content_type == 'json':
             return Response(dumps(dict(**kwargs), cls=JSONEncoder, indent=4), mimetype='application/json')
@@ -337,9 +338,7 @@ class Renderer(object):
 
         template = self.env.get_template('index.html')
 
-        return self.render(template, l = self.doc_cache.library_info(),
-                           warehouses = self.doc_cache.warehouse_index(),
-                           **self.cc())
+        return self.render(template, l = self.doc_cache.library_info(), **self.cc())
 
     def bundles_index(self):
         """Render the bundle Table of Contents for a library"""
@@ -361,6 +360,10 @@ class Renderer(object):
         template = self.env.get_template('bundle/index.html')
 
         b = self.doc_cache.bundle(vid)
+
+        for p in b['partitions'].values():
+            p['description'] = b['tables'][p['table_vid']].get('description','')
+
 
         return self.render(template, b = b , **self.cc())
 
@@ -408,12 +411,28 @@ class Renderer(object):
         return self.render(template, b=b, t=t, **self.cc())
 
     def partition(self, pvid):
+        from geoid.civick import GVid
 
         template = self.env.get_template('bundle/partition.html')
 
         p = self.doc_cache.partition(pvid)
 
         p['table'] = self.doc_cache.table(p['table_vid'])
+
+        if 'geo_coverage' in p:
+
+            all_idents = self.library.search.identifier_map
+
+            for gvid in p['geo_coverage']['vids']:
+                try:
+                    p['geo_coverage']['names'].append(all_idents[gvid])
+                except KeyError:
+                    g = GVid.parse(gvid)
+                    try:
+                        phrase = "All {} in {} ".format(g.level_plural.title(), all_idents[str(g.promote())])
+                        p['geo_coverage']['names'].append(phrase)
+                    except  KeyError:
+                        pass
 
         return self.render(template,  p=p, **self.cc())
 
@@ -475,6 +494,20 @@ class Renderer(object):
                            md=m_dict,
                            **self.cc() )
 
+    def collections_index(self):
+        """Collections/Warehouses"""
+        template = self.env.get_template('toc/collections.html')
+
+        collections = {f.ref: dict(
+            title=f.data['title'],
+            summary=f.data['summary'] if f.data['summary'] else '',
+            dsn=f.path,
+            manifests=[m.ref for m in f.linked_manifests],
+            cache=f.data['cache'],
+            class_type=f.type_) for f in self.library.stores}
+
+        return self.render(template, collections = collections , **self.cc())
+
     @property
     def css_dir(self):
         import ambrydoc.templates as tdir
@@ -486,6 +519,12 @@ class Renderer(object):
 
         return os.path.join(os.path.dirname(tdir.__file__), 'css', name)
 
+
+    @property
+    def js_dir(self):
+        import ambrydoc.templates as tdir
+
+        return os.path.join(os.path.dirname(tdir.__file__), 'js')
 
     def search(self, term):
         from ambrydoc.search import Search
@@ -504,6 +543,102 @@ class Renderer(object):
 
         return self.render(template, term = term, bundles = bundles, stores = stores, **self.cc())
 
+    def dataset_search(self, term):
+        """Incremental search, search as you type"""
+        from ambrydoc.search import Search
+
+        results = []
+        for x in self.library.search.search_datasets(term):
+            ds = self.library.dataset(x)
+            results.append((x, ds.name, ds.data.get('title')))
+
+        template = self.env.get_template('search/isearch.html')
+
+        return self.render(template, term=term, results=results, **self.cc())
+
+    def place_search(self, term):
+        """Incremental search, search as you type"""
+        from ambrydoc.search import Search
+
+        results = []
+        for score, gvid, name in self.library.search.search_identifiers(term):
+            #results.append({"label":name, "value":gvid})
+            results.append({"label": name})
+
+        return Response(dumps(results, cls=JSONEncoder, indent=4), mimetype='application/json')
+
+    def bundle_search(self, terms):
+        """Incremental search, search as you type"""
+        from ambrydoc.search import Search
+        from geoid.civick import GVid
+
+        results = []
+        (b_query, p_query), bp_set = self.library.search.search_bundles({ k:v.strip() for k,v in terms.items()})
+
+        pvid_limit = 5
+
+        all_idents = self.library.search.identifier_map
+
+
+        for bvid, pvids in bp_set.items():
+
+            d = self.doc_cache.dataset(bvid)
+
+            d['partition_count'] = len(pvids)
+            d['partitions'] = {}
+
+            for pvid in pvids[:pvid_limit]:
+
+                p = self.doc_cache.partition(pvid)
+
+                p['table'] = self.doc_cache.table(p['table_vid'])
+
+                if 'geo_coverage' in p:
+                    for gvid in p['geo_coverage']['vids']:
+                        try:
+
+                            p['geo_coverage']['names'].append(all_idents[gvid])
+
+                        except KeyError:
+                            g = GVid.parse(gvid)
+                            try:
+                                phrase =  "All {} in {} ".format(g.level_plural.title(), all_idents[str(g.promote())] )
+                                p['geo_coverage']['names'].append(phrase)
+                            except  KeyError:
+                                pass
+
+                d['partitions'][pvid] = p
+
+
+            results.append(d)
+
+        template = self.env.get_template('search/isearch.html')
+
+        results = sorted(results, key=lambda x: x['vname'] )
+
+        # Collect facets to display to the user, for additional sorting
+        facets = {
+            'years': set(),
+            'sources': set(),
+            'states': set()
+        }
+
+        for r in results:
+            facets['sources'].add(r['source'])
+            for  p in r['partitions'].values():
+                if 'time_coverage' in p and p['time_coverage']:
+                    facets['years'] |= set(p['time_coverage']['years'])
+
+                if 'geo_coverage' in p:
+                    for gvid in p['geo_coverage']['vids']:
+                        g = GVid.parse(gvid)
+
+                        if g.level == 'state':
+                            #facets['states'].add( (gvid, all_idents[gvid]))
+                            facets['states'].add(all_idents[gvid])
+
+        return self.render(template, queries=dict(b_query=b_query, p_query=p_query),
+                           results=results, facets = facets, **self.cc())
 
     def generate_sources(self):
 
@@ -522,7 +657,6 @@ class Renderer(object):
             sources[source]['bundles'][vid] = b
 
         return sources
-
 
     def sources(self):
 

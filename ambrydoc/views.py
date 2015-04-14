@@ -6,6 +6,13 @@ from . import app, renderer
 from flask import g, current_app, send_from_directory, request
 
 
+def send_json(o):
+    from flask import Response
+    from flask.json import dumps
+    from render import JSONEncoder
+
+    return Response(dumps(o, cls=JSONEncoder, indent=4),mimetype='application/json')
+
 @app.teardown_appcontext
 def close_connection(exception):
     pass
@@ -15,10 +22,20 @@ def page_not_found(e):
     return renderer().error500(e)
 
 
+# Really should be  serving this from a static directory, but this
+# is easier for now.
 @app.route('/css/<name>')
 def css_file(name):
-
     return send_from_directory(renderer().css_dir, name)
+
+@app.route('/js/<path:path>')
+def js_file(path):
+    import os.path
+
+    dir, name = os.path.split(os.path.join(renderer().js_dir, path))
+
+
+    return send_from_directory(dir, name)
 
 @app.route('/')
 @app.route('/index')
@@ -35,7 +52,28 @@ def databases_ct(ct):
 
 @app.route('/search.<ct>')
 def search(ct):
+
     return renderer(content_type=ct).search(term=request.args.get('term'))
+
+@app.route('/search/dataset')
+def datasetsearch():
+    """Search for a dataset, using a single term"""
+
+    return renderer().dataset_search(term=request.args.get('term'))
+
+@app.route('/search/place')
+def place_search():
+    """Search for a place, using a single term"""
+
+    return renderer().place_search(term=request.args.get('term'))
+
+@app.route('/search/bundle')
+def bundle_search():
+    """Search for a datasets and partitions, using a structured JSON term"""
+
+    return renderer().bundle_search(terms=request.args)
+
+
 
 @app.route('/bundles/<vid>.<ct>')
 def get_bundle(vid, ct):
@@ -69,6 +107,11 @@ def get_bundle_partitions(bvid, pvid, ct):
 
     return renderer(content_type=ct).partition(pvid)
 
+@app.route('/collections.<ct>')
+def get_collections(ct):
+
+    return renderer(content_type=ct).collections_index()
+
 @app.route('/stores/<sid>.<ct>')
 def get_store(sid, ct):
     from flask import url_for
@@ -96,12 +139,6 @@ def test():
 
 @app.route('/test/times')
 def test_times():
-    from flask import Response
-    from flask.json import dumps
-    from render import JSONEncoder
 
-    return Response(dumps([x.__dict__ for x in renderer().compiled_times()], cls=JSONEncoder, indent=4), mimetype='application/json')
+    return send_json(([x.__dict__ for x in renderer().compiled_times()]))
 
-@app.route('/info')
-def info():
-    return renderer().info(current_app.app_config, current_app.run_config)

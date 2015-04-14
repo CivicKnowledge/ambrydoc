@@ -16,22 +16,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="col-md-12">
 
-    <h2>Collections</h2>
-    <p>Collections in this warehouse </p>
-    <table  class="table table-hover table-condensed" >
-    {% for uid, m in s.manifests.items() -%}
-        {%if m -%}
-        <tr>
-        <td><a href="{{manifest_path(uid)}}">{{uid}}</a></td>
-        <td>{{m.title}}</td>
-        <td>{{m.summary.html}}</td>
-        </tr>
-        {%endif%}
-    {% endfor %}
-    </table>
-</div>
 
 <div class="col-md-12">
     <h2>Tables</h2>
@@ -41,7 +26,7 @@
             <th>Name</th>
             <th>Description</th>
             <th>Installed Names</th>
-            <th>Source Collection</th>
+
             {% if s.url -%}<th>Extracts</th>{% endif -%}
         </tr>
     {% for t in s.tables.values()|selectattr('type','equalto','table')|sort(attribute='source_partition')-%}
@@ -56,11 +41,7 @@
                 <li>{{n}}</li>
                 {% endfor -%}</ul>
             </td>
-            <td><ul>{% for uid in t.manifests -%}
-                {% set m = s.manifests.get(uid) -%}
-                <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
-                {% endfor -%}</ul>
-            </td>
+
             {% if s.url -%}<td>
                 {% for format in extractors(t) -%}
                 <button type="button">
@@ -83,7 +64,7 @@
             <th>Name</th>
             <th>Type</th>
             <th>Description</th>
-            <th>Source Collection</th>
+
             {% if s.url -%}<th>Extracts</th>{% endif -%}
         </tr>
     {% for t in s.tables.values()|selectattr('type','isin',['view', 'mview']) -%}
@@ -92,11 +73,7 @@
         <td>{{t.name}}</td>
         <td>{{t.type}}</td>
         <td>{{t.description if t.description  else ''}}</td>
-        <td><ul>{% for uid in t.manifests -%}
-            {% set m = s.manifests.get(uid) -%}
-            <li><a href="{{manifest_path(m.uid)}}">{{m.title}}</a></li>
-            {% endfor -%}</ul>
-        </td>
+
         {% if s.url -%}<td>
                 {% for format in extractors(t) -%}
                 <button type="button">

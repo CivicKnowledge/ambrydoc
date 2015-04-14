@@ -6,59 +6,95 @@
     {{ super() }}
 {% endblock %}
 {% block masthead %}
-    <h1 class="title">{{l.title}}</h1>
-    <p>{{l.summary}}</p>
-    <p>{{l.database}}</p>
+    <h1 class="title">Civic Knowledge Data Search</h1>
 {% endblock %}
 
 {% block body %}
 
-<div >
-    <div class = "row">
-        <div class="col-md-12">
-            {% if warehouses -%}
-            <div>
-                <h2>Databases</h2>
-                <p>Databases that use data from this library. </p>
-                <div>
-                {% for ref,s in warehouses.items() -%}
-                    <div>
-                        <h4><a href="{{store_path(ref)}}">{{s.title}}</a><small> {{s.summary if s.summary else ''}}</small></h4>
-                        <p>{{s.dsn}}</p>
-                    </div>
-                {% endfor %}
-                </div>
+<div id="search-inputs">
+    <div class = "row top-buffer">
+        <div class="col-md-2">Subject</div>
+        <div class="col-md-8">
+            <div class="input-group">
+                <div class="input-group-addon about">About</div>
+                <input type="text" id="ds-search" placeholder="Search"  name="about">
             </div>
-        {% endif %}
         </div>
+        <div class="col-md-2"></div>
     </div>
-    <div class = "row">
-        <div class="col-md-12">
+    <div class = "row top-buffer">
+        <div class="col-md-2">
+            Variables and Source agency
+        </div>
 
-            {% if False and l.manifests-%}
-            <div>
-                <h2>Collections</h2>
-                <p>Collections of data bundles around a specific topic.</p>
-                <div>
-                {% for uid, m in l.manifests.items() -%}
-                    {% if m.partitions|length > 0 -%}
-                    <div>
-                        <h3><a href="{{manifest_path(uid)}}">{{m.title}}</a></h3>
-                        <p>{{m.summary}}</p>
-                    </div>
-
-                    {% endif %}
-                {% endfor %}
-                </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon with">With</div>
+                <input type="text" id="with-search" placeholder="Variable name" name="with" >
             </div>
-            {% endif -%}
-
         </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon with">Source</div>
+                <input type="text" id="source-search" placeholder="Data producer domain name" name="source" >
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+    <div class = "row top-buffer">
+        <div class="col-md-2">
+            <p>Geographic Coverage</p>
+        </div>
+
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon in">In</div>
+                <input type="text" id="place-search" placeholder="Place Search" name="in">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon by">By</div>
+                <select class="form-control" name="by" placeholder="Geographic Granularity">
+                    <option value="">Geographic Granularity</option>
+                    <option value="0E00">State</option>
+                    <option value="0O0000">County</option>
+                    <option value="2A000000">Place</option>
+                    <option value="6s0000">Urban Area</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
     </div>
 
+    <div class = "row top-buffer">
+        <div class="col-md-2">
+            <p>Time coverage</p>
+        </div>
 
-
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon from">From</div>
+                <input type="text" id="from-search" placeholder="Start year" name="from" >
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon to">To</div>
+                <input type="text" id="to-search" placeholder="End Year" name="to">
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
 </div>
+
+<div id="loading" class="spinner">
+    Loading...
+</div>
+
+<div id="dataset-results">
+</div>
+
 
 
 {% endblock %}
@@ -67,5 +103,25 @@
     {{ super() }}
     <script>
     $('.toc_title').tooltip()
+    $('#search-inputs').searchbox({
+      url: '/search/bundle',
+      param: 'term',
+      dom_id: '#dataset-results',
+      delay: 250,
+      loading_css: '#loading'
+    })
+
+    $(function() {
+        $( "#place-search" ).autocomplete({
+          source: "/search/place",
+          minLength: 2,
+          appendTo: "#place-search-results"
+        });
+    });
+
+    $(document).bind('before.searchbox', function() {
+        $('#dataset-results').empty()
+    })
+
     </script>
 {% endblock %}

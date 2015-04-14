@@ -131,3 +131,62 @@ body {
 
 .modal .modal-dialog { width: 800px; }
 
+.im-centered { margin: auto; max-width: 300px;}
+
+.input-group-addon {
+    font-weight: bold;
+}
+
+.input-group-addon.about {
+    color: black;
+    background-color: #BBB;
+    border-color: #999;
+}
+
+.input-group-addon.in {
+    color: white;
+    background-color: #E81004;
+    border-color: #E81004;
+}
+
+.input-group-addon.by {
+    color: white;
+    background-color: #E85D70;
+    border-color: #E85D70;
+}
+
+.input-group-addon.with {
+  color: white;
+  background-color: #061DFF;
+  border-color: #394DFF;
+}
+
+.input-group-addon.from {
+    color: white;
+    background-color: #00E877;
+    border-color: #00E877;
+}
+
+.input-group-addon.to {
+    color: white;
+    background-color: #28E892;
+    border-color: #28E892;
+}
+
+.top-buffer { margin-top:20px; }
+
+#search-inputs .input-group-addon {
+    width: 8em;
+}
+
+#search-inputs input, #search-inputs select {
+    width: 20em;
+}
+
+div.search-result-partition {
+    border-radius: 5px;
+    border: 1px solid #aaaaaa;
+    background: #EEE;
+    padding: 5px;
+    margin-bottom: 5px;
+}

@@ -12,7 +12,7 @@
 {% set cb = b.meta.contact_bundle %}
 {% set cs = b.meta.contact_source %}
 {% if (cb and (cb.creator or cb.maintainer)) or ( cs and (cs.creator or cs.maintainer)) -%}
-<div class = 'ck-contacts pull-left col-md-5' >
+<div class = 'ck-contacts' >
     <h2>Contacts</h2>
     <dl  class="dl-horizontal">
     {% if cb %}
