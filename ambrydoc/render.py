@@ -10,6 +10,8 @@ from flask import Response
 
 import jinja2.tests
 
+##
+## These are in later versions of jinja, but we need them in earlier ones.
 if not 'equalto' in jinja2.tests.TESTS:
     def test_equalto(value, other):
         return value == other
@@ -523,39 +525,10 @@ class Renderer(object):
 
         return os.path.join(os.path.dirname(tdir.__file__), 'js')
 
-    def search(self, term):
-        from ambrydoc.search import Search
-
-        if term:
-
-            s = Search(self.doc_cache)
-
-            bundles, stores =  s.search(term)
-
-        else:
-
-            bundles = []
-
-        template = self.env.get_template('search.html')
-
-        return self.render(template, term = term, bundles = bundles, stores = stores, **self.cc())
-
-    def dataset_search(self, term):
-        """Incremental search, search as you type"""
-        from ambrydoc.search import Search
-
-        results = []
-        for x in self.library.search.search_datasets(term):
-            ds = self.library.dataset(x)
-            results.append((x, ds.name, ds.data.get('title')))
-
-        template = self.env.get_template('search/isearch.html')
-
-        return self.render(template, term=term, results=results, **self.cc())
 
     def place_search(self, term):
         """Incremental search, search as you type"""
-        from ambrydoc.search import Search
+
 
         results = []
         for score, gvid, name in self.library.search.search_identifiers(term):
@@ -566,7 +539,7 @@ class Renderer(object):
 
     def bundle_search(self, terms):
         """Incremental search, search as you type"""
-        from ambrydoc.search import Search
+
         from geoid.civick import GVid
 
         results = []
@@ -609,7 +582,7 @@ class Renderer(object):
 
             results.append(d)
 
-        template = self.env.get_template('search/isearch.html')
+        template = self.env.get_template('search.html')
 
         results = sorted(results, key=lambda x: x['vname'] )
 

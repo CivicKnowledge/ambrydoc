@@ -32,10 +32,7 @@ def css_file(name):
 def js_file(path):
     import os.path
 
-    dir, name = os.path.split(os.path.join(renderer().js_dir, path))
-
-
-    return send_from_directory(dir, name)
+    return send_from_directory(*os.path.split(os.path.join(renderer().js_dir, path)))
 
 @app.route('/')
 @app.route('/index')
@@ -123,22 +120,9 @@ def get_store_table(sid, tvid, ct):
 
     return renderer(content_type=ct).store_table(sid, tvid)
 
-@app.route('/manifests/<mid>.<ct>')
-def get_manifest(mid, ct):
-
-    return renderer(content_type=ct).manifest(mid)
 
 @app.route('/sources.<ct>')
 def get_sources(ct):
 
     return renderer(content_type=ct).sources()
-
-@app.route('/test')
-def test():
-    pass
-
-@app.route('/test/times')
-def test_times():
-
-    return send_json(([x.__dict__ for x in renderer().compiled_times()]))
 
